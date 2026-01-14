@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토마토 가격 비교 대시보드 - 영업 전용</title>
+    <link rel="stylesheet" href="tomato-dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="dashboard-header">
+            <h1>🍅 토마토 가격 비교 대시보드</h1>
+            <p>도매시장 vs 온라인몰 실시간 가격 비교</p>
+            <div class="last-update">
+                마지막 업데이트: <span id="lastUpdate">-</span>
+            </div>
+        </header>
+
+        <!-- 새로고침 버튼 -->
+        <div class="control-panel">
+            <button id="refreshBtn" class="refresh-btn">🔄 데이터 새로고침</button>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>데이터 로딩 중...</p>
+        </div>
+
+        <!-- 에러 메시지 -->
+        <div id="error" class="error" style="display: none;"></div>
+
+        <!-- 메인 대시보드 -->
+        <div id="dashboard" class="dashboard-content" style="display: none;">
+
+            <!-- 섹션 1: 가격 비교 테이블 -->
+            <section class="price-compare-section">
+                <h2>📊 등급별 가격 비교 (1kg 기준)</h2>
+                <div class="comparison-table-wrapper">
+                    <table class="comparison-table" id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th>등급</th>
+                                <th>크기 기준</th>
+                                <th>도매시장 가격</th>
+                                <th>온라인 최저가</th>
+                                <th>가격 차이</th>
+                                <th>마진율</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonBody">
+                            <!-- JavaScript로 채워짐 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 섹션 2: 온라인몰 최저가 상세 -->
+            <section class="online-detail-section">
+                <h2>🛒 온라인몰 최저가 상세 (1kg 기준)</h2>
+                <div class="online-summary" id="onlineSummary">
+                    <!-- JavaScript로 채워짐 -->
+                </div>
+
+                <h3>상위 10개 판매처</h3>
+                <div class="online-list" id="onlineList">
+                    <!-- JavaScript로 채워짐 -->
+                </div>
+            </section>
+
+            <!-- 섹션 3: 도매시장 가격 상세 -->
+            <section class="wholesale-section">
+                <h2>🏪 도매시장 가격 상세</h2>
+                <div class="wholesale-cards" id="wholesaleCards">
+                    <!-- JavaScript로 채워짐 -->
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="tomato-dashboard.js"></script>
+</body>
+</html>
