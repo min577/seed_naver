@@ -17,9 +17,13 @@
             </div>
         </header>
 
-        <!-- 새로고침 버튼 -->
+        <!-- 새로고침 버튼 & 일반 검색 -->
         <div class="control-panel">
             <button id="refreshBtn" class="refresh-btn">🔄 데이터 새로고침</button>
+            <div class="search-section">
+                <input type="text" id="searchInput" class="search-input" placeholder="일반 상품 검색 (예: 사과 1kg, 배추 1포기)">
+                <button id="searchBtn" class="search-btn">🔍 검색</button>
+            </div>
         </div>
 
         <!-- 로딩 표시 -->
@@ -30,6 +34,17 @@
 
         <!-- 에러 메시지 -->
         <div id="error" class="error" style="display: none;"></div>
+
+        <!-- 검색 결과 섹션 -->
+        <div id="searchResults" class="search-results" style="display: none;">
+            <div class="search-header">
+                <h2>🔍 <span id="searchQuery"></span> 검색 결과</h2>
+                <button id="closeSearchBtn" class="close-search-btn">✕ 닫기</button>
+            </div>
+            <div id="searchResultsList" class="search-results-list">
+                <!-- JavaScript로 채워짐 -->
+            </div>
+        </div>
 
         <!-- 메인 대시보드 -->
         <div id="dashboard" class="dashboard-content" style="display: none;">

@@ -5,6 +5,14 @@ const dashboardDiv = document.getElementById('dashboard');
 const refreshBtn = document.getElementById('refreshBtn');
 const lastUpdateSpan = document.getElementById('lastUpdate');
 
+// 검색 요소
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const searchResults = document.getElementById('searchResults');
+const searchResultsList = document.getElementById('searchResultsList');
+const searchQuery = document.getElementById('searchQuery');
+const closeSearchBtn = document.getElementById('closeSearchBtn');
+
 // 테이블 및 섹션
 const comparisonBody = document.getElementById('comparisonBody');
 const onlineSummary = document.getElementById('onlineSummary');
@@ -22,6 +30,15 @@ const gradeInfo = {
 // 페이지 로드 시 데이터 가져오기
 window.addEventListener('load', fetchData);
 refreshBtn.addEventListener('click', fetchData);
+
+// 검색 기능
+searchBtn.addEventListener('click', handleSearch);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleSearch();
+    }
+});
+closeSearchBtn.addEventListener('click', closeSearch);
 
 async function fetchData() {
     showLoading();
@@ -224,4 +241,67 @@ function showError(message) {
 
 function hideError() {
     errorDiv.style.display = 'none';
+}
+
+// 일반 검색 기능
+async function handleSearch() {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        showError('검색어를 입력해주세요.');
+        return;
+    }
+
+    showLoading();
+    hideError();
+
+    try {
+        const response = await fetch(`/api/general-search?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || '검색 중 오류가 발생했습니다.');
+        }
+
+        renderSearchResults(data);
+        hideLoading();
+
+    } catch (error) {
+        hideLoading();
+        showError(error.message);
+    }
+}
+
+function renderSearchResults(data) {
+    searchQuery.textContent = `"${data.query}"`;
+    searchResultsList.innerHTML = '';
+
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        searchResultsList.innerHTML = '<div class="no-data">검색 결과가 없습니다.</div>';
+    } else {
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'search-item';
+            div.innerHTML = `
+                <img src="${item.image}" alt="${item.title}" class="search-item-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3E이미지 없음%3C/text%3E%3C/svg%3E'">
+                <div class="search-item-title">${item.title}</div>
+                <div class="search-item-mall">🏪 ${item.mall}</div>
+                <div class="search-item-price">${formatPrice(item.price)}</div>
+                <a href="${item.link}" target="_blank" class="search-item-link">구매하러 가기 →</a>
+            `;
+            searchResultsList.appendChild(div);
+        });
+    }
+
+    // 검색 결과 표시 및 대시보드 숨기기
+    searchResults.style.display = 'block';
+    dashboardDiv.style.display = 'none';
+}
+
+function closeSearch() {
+    searchResults.style.display = 'none';
+    dashboardDiv.style.display = 'block';
+    searchInput.value = '';
 }

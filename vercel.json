@@ -16,6 +16,10 @@
       "dest": "/api/tomato-price-compare.js"
     },
     {
+      "src": "/api/general-search",
+      "dest": "/api/general-search.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     },
