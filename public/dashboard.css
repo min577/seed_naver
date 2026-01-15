@@ -5,9 +5,9 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     min-height: 100vh;
     padding: 20px;
     color: #2c3e50;
@@ -69,7 +69,7 @@ body {
 
 .tab-btn.active {
     background: white;
-    color: #667eea;
+    color: #5ac93b;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -148,7 +148,7 @@ body {
     min-width: 150px;
     transition: all 0.3s ease;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235ac93b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 36px;
@@ -156,18 +156,18 @@ body {
 
 .product-dropdown:hover,
 .period-dropdown:hover {
-    border-color: #667eea;
+    border-color: #5ac93b;
 }
 
 .product-dropdown:focus,
 .period-dropdown:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    border-color: #5ac93b;
+    box-shadow: 0 0 0 3px rgba(90, 201, 59, 0.15);
 }
 
 /* 버튼 스타일 */
 .refresh-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -180,7 +180,7 @@ body {
 
 .refresh-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.4);
 }
 
 /* 마지막 업데이트 */
@@ -201,7 +201,7 @@ body {
 
 .spinner {
     border: 4px solid #f0f0f0;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid #5ac93b;
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -255,12 +255,12 @@ section h4 {
 }
 
 .wholesale-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.3);
     transition: transform 0.2s ease;
 }
 
@@ -317,7 +317,7 @@ section h4 {
     font-weight: 600;
     color: white;
     font-size: 13px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
 }
 
 .comparison-table td,
@@ -383,7 +383,7 @@ section h4 {
 }
 
 .summary-card:hover {
-    border-color: #667eea;
+    border-color: #5ac93b;
     transform: translateY(-2px);
 }
 
@@ -399,7 +399,7 @@ section h4 {
 .summary-card .value {
     font-size: 18px;
     font-weight: 700;
-    color: #667eea;
+    color: #5ac93b;
     margin-bottom: 4px;
 }
 
@@ -425,7 +425,7 @@ section h4 {
 }
 
 .online-item:hover {
-    border-color: #667eea;
+    border-color: #5ac93b;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -434,7 +434,7 @@ section h4 {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     width: 26px;
     height: 26px;
@@ -459,7 +459,7 @@ section h4 {
 .online-item .item-price {
     font-size: 18px;
     font-weight: 700;
-    color: #667eea;
+    color: #5ac93b;
     margin-bottom: 6px;
 }
 
@@ -472,7 +472,7 @@ section h4 {
 .online-item .item-link {
     display: block;
     text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     text-decoration: none;
     padding: 8px;
@@ -523,7 +523,7 @@ section h4 {
 
 .bar {
     width: 100%;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(180deg, #5ac93b 0%, #3d9e2a 100%);
     border-radius: 6px 6px 0 0;
     transition: height 0.5s ease;
     min-height: 4px;
@@ -561,7 +561,7 @@ section h4 {
 }
 
 .region-card:hover {
-    border-color: #667eea;
+    border-color: #5ac93b;
     transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -576,7 +576,7 @@ section h4 {
 .region-card .region-price {
     font-size: 22px;
     font-weight: 700;
-    color: #667eea;
+    color: #5ac93b;
     margin-bottom: 8px;
 }
 
@@ -608,12 +608,12 @@ section h4 {
 }
 
 .search-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    border-color: #5ac93b;
+    box-shadow: 0 0 0 3px rgba(90, 201, 59, 0.15);
 }
 
 .search-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -626,7 +626,7 @@ section h4 {
 
 .search-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.4);
 }
 
 /* 쿠팡 버튼 */
@@ -677,7 +677,7 @@ section h4 {
 }
 
 .search-results-header #searchQuery {
-    color: #667eea;
+    color: #5ac93b;
 }
 
 .search-results-list {
@@ -711,7 +711,7 @@ section h4 {
 }
 
 .search-item:hover {
-    border-color: #667eea;
+    border-color: #5ac93b;
     transform: translateY(-4px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
@@ -748,14 +748,14 @@ section h4 {
 .search-item-price {
     font-size: 20px;
     font-weight: 700;
-    color: #667eea;
+    color: #5ac93b;
     margin-bottom: 12px;
 }
 
 .search-item-link {
     display: block;
     text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
     color: white;
     text-decoration: none;
     padding: 10px;
