@@ -433,75 +433,98 @@ section h4 {
     color: #999;
 }
 
-/* 온라인 리스트 */
+/* 온라인 리스트 - 테이블 스타일 */
 .online-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    overflow: hidden;
 }
 
 .online-item {
-    background: #fff;
-    border-radius: 10px;
-    padding: 14px;
-    border: 1px solid #ddd;
-    transition: all 0.3s ease;
-    position: relative;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s ease;
+    gap: 16px;
+}
+
+.online-item:last-child {
+    border-bottom: none;
 }
 
 .online-item:hover {
-    border-color: #1a1a1a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #f8f8f8;
 }
 
 .online-item .rank {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #1a1a1a;
-    color: white;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: #f0f0f0;
+    color: #555;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
+}
+
+.online-item:nth-child(1) .rank {
+    background: #1a1a1a;
+    color: white;
+}
+
+.online-item:nth-child(2) .rank {
+    background: #555;
+    color: white;
+}
+
+.online-item:nth-child(3) .rank {
+    background: #888;
+    color: white;
+}
+
+.online-item .item-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .online-item .item-title {
-    font-size: 12px;
+    font-size: 14px;
     color: #1a1a1a;
-    margin-bottom: 10px;
+    margin-bottom: 4px;
     line-height: 1.4;
-    min-height: 34px;
     font-weight: 500;
-    padding-right: 30px;
-}
-
-.online-item .item-price {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .online-item .item-mall {
-    font-size: 11px;
-    color: #777;
-    margin-bottom: 10px;
+    font-size: 12px;
+    color: #888;
+}
+
+.online-item .item-price {
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    min-width: 100px;
+    text-align: right;
 }
 
 .online-item .item-link {
-    display: block;
-    text-align: center;
-    background: #1a1a1a;
-    color: white;
+    flex-shrink: 0;
+    display: inline-block;
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #ccc;
     text-decoration: none;
-    padding: 8px;
+    padding: 8px 16px;
     border-radius: 6px;
     font-weight: 600;
     font-size: 12px;
@@ -509,7 +532,9 @@ section h4 {
 }
 
 .online-item .item-link:hover {
-    background: #333;
+    background: #1a1a1a;
+    color: white;
+    border-color: #1a1a1a;
 }
 
 /* 차트 영역 */
@@ -550,7 +575,7 @@ section h4 {
 
 .bar {
     width: 100%;
-    background: #1a1a1a;
+    background: linear-gradient(180deg, #6b9bd2 0%, #4a7fb8 100%);
     border-radius: 6px 6px 0 0;
     transition: height 0.5s ease;
     min-height: 4px;
@@ -864,8 +889,33 @@ section h4 {
         max-width: none;
     }
 
-    .online-list,
     .search-results-list {
         grid-template-columns: 1fr;
+    }
+
+    .online-item {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+    }
+
+    .online-item .item-info {
+        order: 1;
+        width: calc(100% - 44px);
+    }
+
+    .online-item .rank {
+        order: 0;
+    }
+
+    .online-item .item-price {
+        order: 2;
+        width: 100%;
+        text-align: left;
+        margin-top: 8px;
+    }
+
+    .online-item .item-link {
+        order: 3;
+        margin-top: 8px;
     }
 }

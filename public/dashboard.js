@@ -293,11 +293,13 @@ function renderOnlineList(data) {
         const div = document.createElement('div');
         div.className = 'online-item';
         div.innerHTML = `
-            <div class="rank">#${index + 1}</div>
-            <div class="item-title">${item.title}</div>
+            <div class="rank">${index + 1}</div>
+            <div class="item-info">
+                <div class="item-title">${item.title}</div>
+                <div class="item-mall">${item.mall}</div>
+            </div>
             <div class="item-price">${formatPrice(item.price)}</div>
-            <div class="item-mall">🏪 ${item.mall}</div>
-            <a href="${item.link}" target="_blank" class="item-link">구매하기 →</a>
+            <a href="${item.link}" target="_blank" class="item-link">구매</a>
         `;
         onlineList.appendChild(div);
     });
