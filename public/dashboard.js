@@ -518,14 +518,15 @@ function renderEmptyRegionCards() {
 // 탭 4: 상품 검색
 // ============================================
 
-// 쿠팡 검색 페이지 열기
+// 쿠팡 검색 페이지 열기 (최저가순 정렬)
 function openCoupangSearch() {
     const query = searchInput.value.trim();
     if (!query) {
         showError('검색어를 입력해주세요.');
         return;
     }
-    const coupangUrl = `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(query)}`;
+    // sorter=salePriceAsc: 낮은 가격순 정렬
+    const coupangUrl = `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(query)}&sorter=salePriceAsc`;
     window.open(coupangUrl, '_blank');
 }
 
