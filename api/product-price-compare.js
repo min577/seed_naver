@@ -168,10 +168,16 @@ function parseKamisPrice(data, productKey) {
   items.forEach(item => {
     const itemName = item.item_name || '';
     const kindName = item.kind_name || '';
+    const rank = item.rank || '';
     const price = parseInt((item.dpr1 || '0').replace(/,/g, ''), 10);
 
-    if (itemName.includes(product.name) || kindName.includes(product.name)) {
-      if (kindName.includes('상') || kindName.includes('특') || kindName.includes('1등')) {
+    // 품목명이 일치하는지 확인 (방울토마토는 제외)
+    const isMatch = (itemName.includes(product.name) || kindName.includes(product.name))
+      && !itemName.includes('방울');
+
+    if (isMatch && price > 0) {
+      // rank 필드로 등급 판단 (상품/중품)
+      if (rank === '상품' || rank.includes('상') || rank.includes('특') || rank.includes('1등')) {
         if (price > highPrice) highPrice = price;
       } else {
         if (price > midPrice) midPrice = price;
