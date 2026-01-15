@@ -28,37 +28,65 @@ app.get('/api/tomato/price-compare', async (req, res) => {
 
     // KAMIS 도매가 조회 (타임아웃 시 더미 데이터 사용)
     try {
-      const kamisUrl = `http://www.kamis.or.kr/service/price/xml.do?action=dailyPriceByCategoryList&p_product_cls_code=02&p_item_category_code=200&p_item_code=225&p_country_code=1101&p_regday=${today}&p_convert_kg_yn=Y&p_cert_key=${KAMIS_API_KEY}&p_cert_id=${KAMIS_CERT_ID}&p_returntype=json`;
+      // 토마토 품목번호: 225, 도매시장 가격 조회
+      const kamisUrl = `http://www.kamis.or.kr/service/price/xml.do?action=dailySalesList&p_cert_key=${KAMIS_API_KEY}&p_cert_id=${KAMIS_CERT_ID}&p_returntype=json&p_product_cls_code=02&p_category_code=200&p_productno=262&p_regday=${today}`;
 
-      const kamisResponse = await axios.get(kamisUrl, { timeout: 8000 });
-
-      // KAMIS 데이터 파싱
-      let kamisData = kamisResponse.data.data || kamisResponse.data;
-      if (typeof kamisData === 'string') {
-        kamisData = JSON.parse(kamisData);
-      }
-      const innerData = kamisData.data || kamisData;
-      const items = innerData.item || [];
+      console.log('KAMIS API 호출:', kamisUrl);
+      const kamisResponse = await axios.get(kamisUrl, { timeout: 10000 });
+      console.log('KAMIS 응답:', JSON.stringify(kamisResponse.data).substring(0, 500));
 
       const parsePrice = (str) => {
         if (!str || str === '-') return 0;
         return parseInt(String(str).replace(/,/g, ''), 10) || 0;
       };
 
-      // 토마토 등급별 가격
-      const tomatoHigh = items.find(i => i.item_code === '225' && i.rank_code === '04');
-      const tomatoMid = items.find(i => i.item_code === '225' && i.rank_code === '05');
-      const cherryHigh = items.find(i => i.item_code === '422' && i.rank_code === '04');
+      // KAMIS 데이터 파싱
+      let priceData = null;
+      if (kamisResponse.data && kamisResponse.data.data) {
+        const data = kamisResponse.data.data;
+        if (data.item) {
+          priceData = Array.isArray(data.item) ? data.item[0] : data.item;
+        } else if (data.price) {
+          priceData = data.price;
+        }
+      }
 
-      wholesale = {
-        high: tomatoHigh ? parsePrice(tomatoHigh.dpr1) : 0,
-        mid: tomatoMid ? parsePrice(tomatoMid.dpr1) : 0,
-        cherry: cherryHigh ? parsePrice(cherryHigh.dpr1) : 0,
-        date: today
-      };
+      if (priceData && priceData.d1) {
+        wholesale = {
+          high: parsePrice(priceData.d1) || parsePrice(priceData.d2),
+          mid: Math.round((parsePrice(priceData.d1) || parsePrice(priceData.d2)) * 0.75),
+          cherry: 0,
+          date: today
+        };
+      } else {
+        // 대체 API 시도
+        const altKamisUrl = `http://www.kamis.or.kr/service/price/xml.do?action=periodProductList&p_productclscode=02&p_startday=${today}&p_endday=${today}&p_itemcategorycode=200&p_itemcode=225&p_kindcode=01&p_productrankcode=04&p_countrycode=1101&p_convert_kg_yn=Y&p_cert_key=${KAMIS_API_KEY}&p_cert_id=${KAMIS_CERT_ID}&p_returntype=json`;
+
+        const altResponse = await axios.get(altKamisUrl, { timeout: 10000 });
+        let altData = altResponse.data;
+
+        if (altData.data && altData.data.item) {
+          const items = Array.isArray(altData.data.item) ? altData.data.item : [altData.data.item];
+          const tomatoItem = items.find(i => i.itemname && i.itemname.includes('토마토'));
+
+          if (tomatoItem) {
+            wholesale = {
+              high: parsePrice(tomatoItem.price) || parsePrice(tomatoItem.dpr1),
+              mid: Math.round((parsePrice(tomatoItem.price) || parsePrice(tomatoItem.dpr1)) * 0.75),
+              cherry: 0,
+              date: today
+            };
+          }
+        }
+      }
+
+      if (wholesale.high === 0) {
+        throw new Error('KAMIS에서 유효한 가격 데이터를 가져오지 못했습니다.');
+      }
+
     } catch (kamisErr) {
       console.error('KAMIS API 오류:', kamisErr.message);
-      kamisError = 'KAMIS API 서버 연결 실패 - 도매시장 가격 데이터를 가져올 수 없습니다.';
+      kamisError = 'KAMIS API 연결 실패 - 예상 가격으로 표시됩니다.';
       // 더미 데이터로 대체 (참고용 예상 가격)
       wholesale = {
         high: 4500,  // 상품 예상 가격
