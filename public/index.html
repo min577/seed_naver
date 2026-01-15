@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAMIS 농산물 가격 정보 통합 대시보드</title>
     <link rel="stylesheet" href="dashboard.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div class="container">
@@ -17,19 +18,19 @@
         <!-- 탭 네비게이션 -->
         <nav class="tab-navigation">
             <button class="tab-btn active" data-tab="price-compare">
-                <span class="tab-icon">📊</span>
+                <i data-lucide="scale" class="tab-icon"></i>
                 <span class="tab-label">가격 비교</span>
             </button>
             <button class="tab-btn" data-tab="price-trend">
-                <span class="tab-icon">📈</span>
+                <i data-lucide="trending-up" class="tab-icon"></i>
                 <span class="tab-label">가격 추이</span>
             </button>
             <button class="tab-btn" data-tab="region-price">
-                <span class="tab-icon">🗺️</span>
+                <i data-lucide="map-pin" class="tab-icon"></i>
                 <span class="tab-label">지역별 가격</span>
             </button>
             <button class="tab-btn" data-tab="search">
-                <span class="tab-icon">🔍</span>
+                <i data-lucide="search" class="tab-icon"></i>
                 <span class="tab-label">상품 검색</span>
             </button>
         </nav>
@@ -65,7 +66,7 @@
                             <option value="garlic">🧄 마늘</option>
                         </select>
                     </div>
-                    <button id="refreshCompareBtn" class="refresh-btn">🔄 새로고침</button>
+                    <button id="refreshCompareBtn" class="refresh-btn"><i data-lucide="refresh-cw"></i> 새로고침</button>
                 </div>
             </div>
 
@@ -77,13 +78,13 @@
             <div id="compareContent" class="compare-content">
                 <!-- 도매시장 가격 요약 -->
                 <section class="wholesale-section">
-                    <h3>🏪 도매시장 가격 (1kg 기준)</h3>
+                    <h3><i data-lucide="store"></i> 도매시장 가격 (1kg 기준)</h3>
                     <div class="wholesale-cards" id="wholesaleCards"></div>
                 </section>
 
                 <!-- 가격 비교 테이블 -->
                 <section class="comparison-section">
-                    <h3>📊 등급별 가격 비교</h3>
+                    <h3><i data-lucide="bar-chart-3"></i> 등급별 가격 비교</h3>
                     <div class="comparison-table-wrapper">
                         <table class="comparison-table">
                             <thead>
@@ -102,7 +103,7 @@
 
                 <!-- 온라인 가격 상세 -->
                 <section class="online-section">
-                    <h3>🛒 온라인몰 가격 상세</h3>
+                    <h3><i data-lucide="shopping-cart"></i> 온라인몰 가격 상세</h3>
                     <div class="online-summary" id="onlineSummary"></div>
                     <h4>상위 10개 판매처</h4>
                     <div class="online-list" id="onlineList"></div>
@@ -140,20 +141,20 @@
                             <option value="yearly">연도별 (최근 5년)</option>
                         </select>
                     </div>
-                    <button id="refreshTrendBtn" class="refresh-btn">🔄 조회</button>
+                    <button id="refreshTrendBtn" class="refresh-btn"><i data-lucide="refresh-cw"></i> 조회</button>
                 </div>
             </div>
 
             <div id="trendContent" class="trend-content">
                 <!-- 가격 추이 차트 -->
                 <section class="chart-section">
-                    <h3>📈 가격 변동 추이</h3>
+                    <h3><i data-lucide="line-chart"></i> 가격 변동 추이</h3>
                     <div class="chart-container" id="priceChart"></div>
                 </section>
 
                 <!-- 가격 추이 테이블 -->
                 <section class="trend-table-section">
-                    <h3>📋 상세 데이터</h3>
+                    <h3><i data-lucide="table"></i> 상세 데이터</h3>
                     <div class="trend-table-wrapper">
                         <table class="trend-table">
                             <thead id="trendTableHead"></thead>
@@ -186,14 +187,14 @@
                             <option value="garlic">🧄 마늘</option>
                         </select>
                     </div>
-                    <button id="refreshRegionBtn" class="refresh-btn">🔄 조회</button>
+                    <button id="refreshRegionBtn" class="refresh-btn"><i data-lucide="refresh-cw"></i> 조회</button>
                 </div>
             </div>
 
             <div id="regionContent" class="region-content">
                 <!-- 지역별 가격 테이블 -->
                 <section class="region-table-section">
-                    <h3>🗺️ 지역별 가격 현황</h3>
+                    <h3><i data-lucide="map"></i> 지역별 가격 현황</h3>
                     <div class="region-table-wrapper">
                         <table class="region-table">
                             <thead>
@@ -211,7 +212,7 @@
 
                 <!-- 지역 비교 카드 -->
                 <section class="region-cards-section">
-                    <h3>📍 주요 지역 비교</h3>
+                    <h3><i data-lucide="navigation"></i> 주요 지역 비교</h3>
                     <div class="region-cards" id="regionCards"></div>
                 </section>
             </div>
@@ -223,15 +224,15 @@
                 <h2>상품 검색</h2>
                 <div class="tab-controls search-controls">
                     <input type="text" id="searchInput" class="search-input" placeholder="검색어 입력 (예: 사과 1kg, 배추 1포기)">
-                    <button id="searchBtn" class="search-btn">🔍 네이버</button>
-                    <button id="coupangBtn" class="coupang-btn">🛒 쿠팡</button>
+                    <button id="searchBtn" class="search-btn"><i data-lucide="search"></i> 네이버</button>
+                    <button id="coupangBtn" class="coupang-btn"><i data-lucide="shopping-bag"></i> 쿠팡</button>
                 </div>
             </div>
 
             <div id="searchContent" class="search-content">
                 <div class="search-results-header" id="searchResultsHeader" style="display: none;">
                     <span id="searchQuery"></span> 검색 결과
-                    <button id="coupangLinkBtn" class="coupang-link-btn">🛒 쿠팡에서 보기</button>
+                    <button id="coupangLinkBtn" class="coupang-link-btn"><i data-lucide="external-link"></i> 쿠팡에서 보기</button>
                 </div>
                 <div class="search-results-list" id="searchResultsList">
                     <div class="search-placeholder">
@@ -245,5 +246,9 @@
     </div>
 
     <script src="dashboard.js"></script>
+    <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+    </script>
 </body>
 </html>

@@ -72,7 +72,22 @@ body {
 }
 
 .tab-icon {
-    font-size: 18px;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+/* Lucide 아이콘 기본 스타일 */
+section h3 i,
+.refresh-btn i,
+.search-btn i,
+.coupang-btn i,
+.coupang-link-btn i {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 6px;
+    stroke-width: 2;
 }
 
 /* 탭 콘텐츠 */
