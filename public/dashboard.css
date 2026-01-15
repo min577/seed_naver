@@ -7,10 +7,10 @@
 body {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background: #f5f5f5;
+    background: #f7f6f3;
     min-height: 100vh;
     padding: 20px;
-    color: #1a1a1a;
+    color: #2d2d2d;
 }
 
 .container {
@@ -22,7 +22,7 @@ body {
 .dashboard-header {
     text-align: center;
     margin-bottom: 30px;
-    color: #1a1a1a;
+    color: #2d2d2d;
 }
 
 .dashboard-header h1 {
@@ -33,7 +33,7 @@ body {
 
 .dashboard-header p {
     font-size: 1.1rem;
-    color: #666;
+    color: #6b6b6b;
 }
 
 /* 탭 네비게이션 */
@@ -50,9 +50,9 @@ body {
     align-items: center;
     gap: 8px;
     padding: 14px 28px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     background: white;
-    color: #666;
+    color: #6b6b6b;
     font-size: 15px;
     font-weight: 600;
     border-radius: 12px;
@@ -61,14 +61,14 @@ body {
 }
 
 .tab-btn:hover {
-    border-color: #1a1a1a;
-    color: #1a1a1a;
+    border-color: #3d3d3d;
+    color: #3d3d3d;
 }
 
 .tab-btn.active {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
 }
 
 .tab-icon {
@@ -106,7 +106,7 @@ body {
 
 .tab-header h2 {
     font-size: 1.5rem;
-    color: #1a1a1a;
+    color: #2d2d2d;
     font-weight: 700;
 }
 
@@ -129,7 +129,7 @@ body {
 .period-selector label {
     font-size: 14px;
     font-weight: 600;
-    color: #666;
+    color: #6b6b6b;
 }
 
 .product-dropdown,
@@ -137,16 +137,16 @@ body {
     padding: 10px 16px;
     font-size: 14px;
     font-weight: 600;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     border-radius: 10px;
     background: white;
-    color: #1a1a1a;
+    color: #2d2d2d;
     cursor: pointer;
     outline: none;
     min-width: 150px;
     transition: all 0.3s ease;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a1a1a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233d3d3d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 36px;
@@ -154,18 +154,18 @@ body {
 
 .product-dropdown:hover,
 .period-dropdown:hover {
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
 }
 
 .product-dropdown:focus,
 .period-dropdown:focus {
-    border-color: #1a1a1a;
-    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+    border-color: #3d3d3d;
+    box-shadow: 0 0 0 3px rgba(61, 61, 61, 0.1);
 }
 
 /* 버튼 스타일 */
 .refresh-btn {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -177,9 +177,9 @@ body {
 }
 
 .refresh-btn:hover {
-    background: #333;
+    background: #4a4a4a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* 마지막 업데이트 */
@@ -199,8 +199,8 @@ body {
 }
 
 .spinner {
-    border: 4px solid #f0f0f0;
-    border-top: 4px solid #1a1a1a;
+    border: 4px solid #eae8e4;
+    border-top: 4px solid #3d3d3d;
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -226,22 +226,22 @@ body {
 
 /* 섹션 스타일 */
 section {
-    background: #fafafa;
+    background: #faf9f7;
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 20px;
-    border: 1px solid #eee;
+    border: 1px solid #e5e3df;
 }
 
 section h3 {
-    color: #1a1a1a;
+    color: #2d2d2d;
     font-size: 1.2rem;
     margin-bottom: 16px;
     font-weight: 700;
 }
 
 section h4 {
-    color: #333;
+    color: #4a4a4a;
     font-size: 1rem;
     margin: 20px 0 12px;
     font-weight: 600;
@@ -255,7 +255,7 @@ section h4 {
 }
 
 .wholesale-card {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     padding: 20px;
     border-radius: 12px;
@@ -265,7 +265,7 @@ section h4 {
 
 .wholesale-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .wholesale-card .card-title {
@@ -307,7 +307,7 @@ section h4 {
     background: white;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e5e3df;
 }
 
 .comparison-table th,
@@ -318,7 +318,7 @@ section h4 {
     font-weight: 600;
     color: white;
     font-size: 13px;
-    background: #1a1a1a;
+    background: #3d3d3d;
 }
 
 .comparison-table td,
@@ -332,7 +332,7 @@ section h4 {
 .comparison-table tbody tr:hover,
 .trend-table tbody tr:hover,
 .region-table tbody tr:hover {
-    background: #fafafa;
+    background: #faf9f7;
 }
 
 /* 등급 배지 */
@@ -345,9 +345,9 @@ section h4 {
     color: white;
 }
 
-.grade-high { background: #1a1a1a; }
-.grade-mid { background: #666; }
-.grade-low { background: #999; }
+.grade-high { background: #3d3d3d; }
+.grade-mid { background: #6b6b6b; }
+.grade-low { background: #9a9a9a; }
 
 /* 가격 차이 */
 .price-diff.positive { color: #e74c3c; }
@@ -362,9 +362,9 @@ section h4 {
     font-size: 12px;
 }
 
-.margin-high { background: #e8e8e8; color: #1a1a1a; }
-.margin-mid { background: #f0f0f0; color: #666; }
-.margin-low { background: #f5f5f5; color: #999; }
+.margin-high { background: #e8e6e2; color: #2d2d2d; }
+.margin-mid { background: #f0eeea; color: #6b6b6b; }
+.margin-low { background: #f5f4f2; color: #9a9a9a; }
 
 /* 온라인 요약 */
 .online-summary {
@@ -379,18 +379,18 @@ section h4 {
     padding: 16px;
     border-radius: 10px;
     text-align: center;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     transition: all 0.3s ease;
 }
 
 .summary-card:hover {
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
     transform: translateY(-2px);
 }
 
 .summary-card .label {
     font-size: 11px;
-    color: #999;
+    color: #9a9a9a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
@@ -400,7 +400,7 @@ section h4 {
 .summary-card .value {
     font-size: 18px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 4px;
 }
 
@@ -420,22 +420,22 @@ section h4 {
     background: white;
     border-radius: 10px;
     padding: 14px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .online-item:hover {
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .online-item .rank {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     width: 26px;
     height: 26px;
@@ -449,7 +449,7 @@ section h4 {
 
 .online-item .item-title {
     font-size: 12px;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 10px;
     line-height: 1.4;
     min-height: 34px;
@@ -460,20 +460,20 @@ section h4 {
 .online-item .item-price {
     font-size: 18px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 6px;
 }
 
 .online-item .item-mall {
     font-size: 11px;
-    color: #999;
+    color: #9a9a9a;
     margin-bottom: 10px;
 }
 
 .online-item .item-link {
     display: block;
     text-align: center;
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     text-decoration: none;
     padding: 8px;
@@ -484,7 +484,7 @@ section h4 {
 }
 
 .online-item .item-link:hover {
-    background: #333;
+    background: #4a4a4a;
 }
 
 /* 차트 영역 */
@@ -496,7 +496,7 @@ section h4 {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e5e3df;
 }
 
 .chart-placeholder {
@@ -525,7 +525,7 @@ section h4 {
 
 .bar {
     width: 100%;
-    background: #1a1a1a;
+    background: #3d3d3d;
     border-radius: 6px 6px 0 0;
     transition: height 0.5s ease;
     min-height: 4px;
@@ -533,7 +533,7 @@ section h4 {
 
 .bar-label {
     font-size: 10px;
-    color: #999;
+    color: #9a9a9a;
     margin-top: 8px;
     text-align: center;
     white-space: nowrap;
@@ -541,7 +541,7 @@ section h4 {
 
 .bar-value {
     font-size: 10px;
-    color: #1a1a1a;
+    color: #2d2d2d;
     font-weight: 600;
     margin-bottom: 4px;
 }
@@ -558,27 +558,27 @@ section h4 {
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     transition: all 0.3s ease;
 }
 
 .region-card:hover {
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
     transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .region-card .region-name {
     font-size: 16px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 12px;
 }
 
 .region-card .region-price {
     font-size: 22px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 8px;
 }
 
@@ -602,7 +602,7 @@ section h4 {
     flex: 1;
     padding: 12px 20px;
     font-size: 14px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #e5e3df;
     border-radius: 10px;
     outline: none;
     transition: all 0.3s ease;
@@ -610,12 +610,12 @@ section h4 {
 }
 
 .search-input:focus {
-    border-color: #1a1a1a;
-    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+    border-color: #3d3d3d;
+    box-shadow: 0 0 0 3px rgba(61, 61, 61, 0.1);
 }
 
 .search-btn {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     border: none;
     padding: 12px 24px;
@@ -627,16 +627,16 @@ section h4 {
 }
 
 .search-btn:hover {
-    background: #333;
+    background: #4a4a4a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* 쿠팡 버튼 */
 .coupang-btn {
     background: white;
-    color: #1a1a1a;
-    border: 2px solid #1a1a1a;
+    color: #3d3d3d;
+    border: 2px solid #3d3d3d;
     padding: 12px 24px;
     font-size: 14px;
     font-weight: 600;
@@ -646,16 +646,16 @@ section h4 {
 }
 
 .coupang-btn:hover {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .coupang-link-btn {
     background: white;
-    color: #1a1a1a;
-    border: 2px solid #1a1a1a;
+    color: #3d3d3d;
+    border: 2px solid #3d3d3d;
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 600;
@@ -666,7 +666,7 @@ section h4 {
 }
 
 .coupang-link-btn:hover {
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     transform: translateY(-2px);
 }
@@ -676,14 +676,14 @@ section h4 {
     align-items: center;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #e5e3df;
 }
 
 .search-results-header #searchQuery {
-    color: #1a1a1a;
+    color: #2d2d2d;
     font-weight: 700;
 }
 
@@ -710,7 +710,7 @@ section h4 {
 }
 
 .search-item {
-    background: #fafafa;
+    background: #faf9f7;
     border-radius: 12px;
     padding: 16px;
     border: 2px solid transparent;
@@ -718,9 +718,9 @@ section h4 {
 }
 
 .search-item:hover {
-    border-color: #1a1a1a;
+    border-color: #3d3d3d;
     transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .search-item-image {
@@ -735,7 +735,7 @@ section h4 {
 .search-item-title {
     font-size: 13px;
     font-weight: 500;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 8px;
     height: 36px;
     overflow: hidden;
@@ -748,21 +748,21 @@ section h4 {
 
 .search-item-mall {
     font-size: 12px;
-    color: #999;
+    color: #9a9a9a;
     margin-bottom: 8px;
 }
 
 .search-item-price {
     font-size: 20px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #2d2d2d;
     margin-bottom: 12px;
 }
 
 .search-item-link {
     display: block;
     text-align: center;
-    background: #1a1a1a;
+    background: #3d3d3d;
     color: white;
     text-decoration: none;
     padding: 10px;
@@ -773,7 +773,7 @@ section h4 {
 }
 
 .search-item-link:hover {
-    background: #333;
+    background: #4a4a4a;
 }
 
 /* 데이터 없음 */
