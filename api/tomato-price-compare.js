@@ -1,9 +1,8 @@
 // Vercel Serverless Function - 토마토 가격 비교 API
 const axios = require('axios');
 
-// KAMIS API 설정
-const KAMIS_API_KEY = process.env.KAMIS_API_KEY || '7c1e5d34-54b8-4427-a8a5-9cdf44166e7f';
-const KAMIS_CERT_ID = process.env.KAMIS_CERT_ID || '4422';
+// n8n Webhook URL (KAMIS API 연동)
+const N8N_WEBHOOK_URL = 'http://seedfarm.co.kr:5678/webhook/kamis-tomato-price';
 
 module.exports = async (req, res) => {
   // CORS 헤더 설정
@@ -22,71 +21,28 @@ module.exports = async (req, res) => {
     let wholesale = { high: 0, mid: 0, cherry: 0, date: today };
     let kamisError = null;
 
-    // KAMIS 도매가 조회 (타임아웃 시 더미 데이터 사용)
+    // n8n Webhook을 통한 KAMIS 도매가 조회
     try {
-      // 토마토 품목번호: 225, 도매시장 가격 조회
-      // dailySalesList: 최근 일자별 가격 동향 조회
-      const kamisUrl = `http://www.kamis.or.kr/service/price/xml.do?action=dailySalesList&p_cert_key=${KAMIS_API_KEY}&p_cert_id=${KAMIS_CERT_ID}&p_returntype=json&p_product_cls_code=02&p_category_code=200&p_productno=262&p_regday=${today}`;
+      console.log('n8n Webhook 호출:', N8N_WEBHOOK_URL);
+      const n8nResponse = await axios.get(N8N_WEBHOOK_URL, { timeout: 15000 });
+      console.log('n8n 응답:', JSON.stringify(n8nResponse.data).substring(0, 500));
 
-      console.log('KAMIS API 호출:', kamisUrl);
-      const kamisResponse = await axios.get(kamisUrl, { timeout: 10000 });
-      console.log('KAMIS 응답:', JSON.stringify(kamisResponse.data).substring(0, 500));
+      const data = n8nResponse.data;
 
-      const parsePrice = (str) => {
-        if (!str || str === '-') return 0;
-        return parseInt(String(str).replace(/,/g, ''), 10) || 0;
-      };
-
-      // KAMIS 데이터 파싱 - 다양한 응답 구조 처리
-      let priceData = null;
-      if (kamisResponse.data && kamisResponse.data.data) {
-        const data = kamisResponse.data.data;
-        if (data.item) {
-          priceData = Array.isArray(data.item) ? data.item[0] : data.item;
-        } else if (data.price) {
-          priceData = data.price;
-        }
-      }
-
-      if (priceData && priceData.d1) {
-        // d1: 당일, d2: 1일전, d10: 10일전 등
+      if (data && data.success && data.high > 0) {
         wholesale = {
-          high: parsePrice(priceData.d1) || parsePrice(priceData.d2),
-          mid: Math.round((parsePrice(priceData.d1) || parsePrice(priceData.d2)) * 0.75),
-          cherry: 0,
-          date: today
+          high: data.high,
+          mid: data.mid || Math.round(data.high * 0.75),
+          cherry: data.cherry || 0,
+          date: data.date || today,
+          source: 'KAMIS (n8n)'
         };
       } else {
-        // 대체 API 시도: 일별 도소매가격
-        const altKamisUrl = `http://www.kamis.or.kr/service/price/xml.do?action=periodProductList&p_productclscode=02&p_startday=${today}&p_endday=${today}&p_itemcategorycode=200&p_itemcode=225&p_kindcode=01&p_productrankcode=04&p_countrycode=1101&p_convert_kg_yn=Y&p_cert_key=${KAMIS_API_KEY}&p_cert_id=${KAMIS_CERT_ID}&p_returntype=json`;
-
-        console.log('KAMIS 대체 API 호출:', altKamisUrl);
-        const altResponse = await axios.get(altKamisUrl, { timeout: 10000 });
-        console.log('KAMIS 대체 응답:', JSON.stringify(altResponse.data).substring(0, 500));
-
-        let altData = altResponse.data;
-        if (altData.data && altData.data.item) {
-          const items = Array.isArray(altData.data.item) ? altData.data.item : [altData.data.item];
-          const tomatoItem = items.find(i => i.itemname && i.itemname.includes('토마토'));
-
-          if (tomatoItem) {
-            wholesale = {
-              high: parsePrice(tomatoItem.price) || parsePrice(tomatoItem.dpr1),
-              mid: Math.round((parsePrice(tomatoItem.price) || parsePrice(tomatoItem.dpr1)) * 0.75),
-              cherry: 0,
-              date: today
-            };
-          }
-        }
-      }
-
-      // 가격이 여전히 0이면 더미 데이터 사용
-      if (wholesale.high === 0) {
-        throw new Error('KAMIS에서 유효한 가격 데이터를 가져오지 못했습니다.');
+        throw new Error('n8n에서 유효한 가격 데이터를 가져오지 못했습니다.');
       }
 
     } catch (kamisErr) {
-      console.error('KAMIS API 오류:', kamisErr.message);
+      console.error('n8n/KAMIS API 오류:', kamisErr.message);
       kamisError = 'KAMIS API 연결 실패 - 예상 가격으로 표시됩니다.';
       // 더미 데이터로 대체 (참고용 예상 가격)
       wholesale = {
