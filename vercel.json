@@ -12,6 +12,10 @@
   ],
   "routes": [
     {
+      "src": "/api/product-price-compare",
+      "dest": "/api/product-price-compare.js"
+    },
+    {
       "src": "/api/tomato/price-compare",
       "dest": "/api/tomato-price-compare.js"
     },

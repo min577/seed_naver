@@ -4,6 +4,8 @@ const errorDiv = document.getElementById('error');
 const dashboardDiv = document.getElementById('dashboard');
 const refreshBtn = document.getElementById('refreshBtn');
 const lastUpdateSpan = document.getElementById('lastUpdate');
+const dashboardTitle = document.getElementById('dashboardTitle');
+const productSelect = document.getElementById('productSelect');
 
 // 검색 요소
 const searchInput = document.getElementById('searchInput');
@@ -19,17 +21,42 @@ const onlineSummary = document.getElementById('onlineSummary');
 const onlineList = document.getElementById('onlineList');
 const wholesaleCards = document.getElementById('wholesaleCards');
 
+// 현재 선택된 품목
+let currentProduct = 'tomato';
+
+// 품목별 이모지 및 정보
+const productEmoji = {
+    tomato: '🍅',
+    apple: '🍎',
+    pear: '🍐',
+    grape: '🍇',
+    strawberry: '🍓',
+    watermelon: '🍉',
+    cucumber: '🥒',
+    pepper: '🌶️',
+    cabbage: '🥬',
+    onion: '🧅',
+    potato: '🥔',
+    garlic: '🧄'
+};
+
 // 등급 정보
 const gradeInfo = {
-    high: { label: '상품', size: '테니스공 크기', badge: 'grade-high' },
-    mid: { label: '중품', size: '야구공 크기', badge: 'grade-mid' },
-    low: { label: '하품', size: '배드민턴공 크기', badge: 'grade-low' },
-    cherry: { label: '방울/주스용', size: '탁구공 크기', badge: 'grade-juice' }
+    high: { label: '상품', size: '상급 품질', badge: 'grade-high' },
+    mid: { label: '중품', size: '중급 품질', badge: 'grade-mid' },
+    low: { label: '하품', size: '하급 품질', badge: 'grade-low' },
+    cherry: { label: '방울/주스용', size: '소형', badge: 'grade-juice' }
 };
 
 // 페이지 로드 시 데이터 가져오기
 window.addEventListener('load', fetchData);
 refreshBtn.addEventListener('click', fetchData);
+
+// 품목 변경 이벤트
+productSelect.addEventListener('change', (e) => {
+    currentProduct = e.target.value;
+    fetchData();
+});
 
 // 검색 기능
 searchBtn.addEventListener('click', handleSearch);
@@ -46,12 +73,16 @@ async function fetchData() {
     dashboardDiv.style.display = 'none';
 
     try {
-        const response = await fetch('/api/tomato/price-compare');
+        const response = await fetch(`/api/product-price-compare?product=${currentProduct}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
             throw new Error(data.error || '데이터를 가져오는 데 실패했습니다.');
         }
+
+        // 제목 업데이트
+        const emoji = productEmoji[currentProduct] || '📦';
+        dashboardTitle.textContent = `${emoji} ${data.productName} 가격 비교 대시보드`;
 
         renderDashboard(data);
         updateLastUpdateTime(data.date);
@@ -170,7 +201,7 @@ function renderOnlineList(data) {
         div.innerHTML = `
             <div class="rank">#${index + 1}</div>
             <div class="item-title">${item.title}</div>
-            <div class="item-price">${formatPrice(item.price_per_kg)}</div>
+            <div class="item-price">${formatPrice(item.price)}</div>
             <div class="item-mall">🏪 ${item.mall}</div>
             <a href="${item.link}" target="_blank" class="item-link">구매하러 가기 →</a>
         `;
@@ -187,8 +218,7 @@ function renderWholesaleCards(data) {
 
     const cards = [
         { grade: 'high', price: wholesale.high || 0 },
-        { grade: 'mid', price: wholesale.mid || 0 },
-        { grade: 'cherry', price: wholesale.cherry || 0 }
+        { grade: 'mid', price: wholesale.mid || 0 }
     ];
 
     cards.forEach(card => {
@@ -200,7 +230,7 @@ function renderWholesaleCards(data) {
             <div class="card-title">${gradeInfo[card.grade].label}</div>
             <div class="card-grade">${gradeInfo[card.grade].size}</div>
             <div class="card-price">${formatPrice(card.price)}</div>
-            <div class="card-unit">1kg 기준 ${isDummy ? '(예상 가격)' : '(가락시장)'}</div>
+            <div class="card-unit">1kg 기준 ${isDummy ? '(참고가격)' : '(가락시장)'}</div>
         `;
         wholesaleCards.appendChild(div);
     });

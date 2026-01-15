@@ -3,19 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>토마토 가격 비교 대시보드 - 영업 전용</title>
+    <title>농산물 가격 비교 대시보드</title>
     <link rel="stylesheet" href="tomato-dashboard.css">
 </head>
 <body>
     <div class="container">
         <!-- 헤더 -->
         <header class="dashboard-header">
-            <h1>🍅 토마토 가격 비교 대시보드</h1>
+            <h1 id="dashboardTitle">🍅 토마토 가격 비교 대시보드</h1>
             <p>도매시장 vs 온라인몰 실시간 가격 비교</p>
             <div class="last-update">
                 마지막 업데이트: <span id="lastUpdate">-</span>
             </div>
         </header>
+
+        <!-- 품목 선택 드롭다운 -->
+        <div class="product-selector">
+            <label for="productSelect">품목 선택:</label>
+            <select id="productSelect" class="product-dropdown">
+                <option value="tomato">🍅 토마토</option>
+                <option value="apple">🍎 사과</option>
+                <option value="pear">🍐 배</option>
+                <option value="grape">🍇 포도</option>
+                <option value="strawberry">🍓 딸기</option>
+                <option value="watermelon">🍉 수박</option>
+                <option value="cucumber">🥒 오이</option>
+                <option value="pepper">🌶️ 고추</option>
+                <option value="cabbage">🥬 배추</option>
+                <option value="onion">🧅 양파</option>
+                <option value="potato">🥔 감자</option>
+                <option value="garlic">🧄 마늘</option>
+            </select>
+        </div>
 
         <!-- 새로고침 버튼 & 일반 검색 -->
         <div class="control-panel">
