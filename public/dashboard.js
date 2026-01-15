@@ -30,7 +30,6 @@ const trendTableBody = document.getElementById('trendTableBody');
 // 탭 3: 지역별 가격
 const regionProductSelect = document.getElementById('regionProductSelect');
 const refreshRegionBtn = document.getElementById('refreshRegionBtn');
-const regionTableBody = document.getElementById('regionTableBody');
 const regionCards = document.getElementById('regionCards');
 
 // 탭 4: 검색
@@ -447,69 +446,43 @@ async function fetchRegionPrice() {
             throw new Error(data.error || '지역별 가격 데이터를 가져오는 데 실패했습니다.');
         }
 
-        renderRegionTable(data);
         renderRegionCards(data);
 
     } catch (error) {
         showError(error.message);
-        renderEmptyRegionTable();
         renderEmptyRegionCards();
     } finally {
         hideLoading();
     }
 }
 
-function renderRegionTable(data) {
-    regionTableBody.innerHTML = '';
-    const items = data.items || [];
-
-    if (items.length === 0) {
-        regionTableBody.innerHTML = '<tr><td colspan="4" class="no-data">데이터가 없습니다.</td></tr>';
-        return;
-    }
-
-    items.forEach(item => {
-        const changeClass = item.change > 0 ? 'positive' : item.change < 0 ? 'negative' : '';
-        const changeText = item.change === 0 ? '-' : `${item.change > 0 ? '▲' : '▼'} ${formatPrice(Math.abs(item.change))}`;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.region}</td>
-            <td>${formatPrice(item.wholesalePrice)}</td>
-            <td>${formatPrice(item.retailPrice)}</td>
-            <td class="price-diff ${changeClass}">${changeText}</td>
-        `;
-        regionTableBody.appendChild(tr);
-    });
-}
-
 function renderRegionCards(data) {
     regionCards.innerHTML = '';
     const items = data.items || [];
-    const mainRegions = items.slice(0, 6);
 
-    if (mainRegions.length === 0) {
+    if (items.length === 0) {
         regionCards.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
         return;
     }
 
-    mainRegions.forEach(item => {
+    // 모든 지역 데이터를 카드로 표시
+    items.forEach((item, index) => {
         const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
         const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${formatPrice(Math.abs(item.change))}`;
+        const isHighest = index === 0;
+        const isLowest = index === items.length - 1;
 
         const card = document.createElement('div');
-        card.className = 'region-card';
+        card.className = 'region-card' + (isHighest ? ' highest' : '') + (isLowest ? ' lowest' : '');
         card.innerHTML = `
-            <div class="region-name">📍 ${item.region}</div>
+            ${isHighest ? '<div class="region-badge highest-badge">최고가</div>' : ''}
+            ${isLowest ? '<div class="region-badge lowest-badge">최저가</div>' : ''}
+            <div class="region-name">${item.region}</div>
             <div class="region-price">${formatPrice(item.retailPrice || item.wholesalePrice)}</div>
             <div class="region-change ${changeClass}">${changeText}</div>
         `;
         regionCards.appendChild(card);
     });
-}
-
-function renderEmptyRegionTable() {
-    regionTableBody.innerHTML = '<tr><td colspan="4" class="no-data">데이터가 없습니다.</td></tr>';
 }
 
 function renderEmptyRegionCards() {
