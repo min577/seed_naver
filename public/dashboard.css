@@ -81,16 +81,22 @@ body {
 }
 
 /* Lucide 아이콘 기본 스타일 */
-section h3 i,
+section h3 i {
+    width: 18px;
+    height: 18px;
+    vertical-align: -3px;
+    margin-right: 6px;
+    stroke-width: 2;
+}
+
 .refresh-btn i,
 .search-btn i,
 .coupang-btn i,
 .coupang-link-btn i {
-    width: 18px;
-    height: 18px;
-    vertical-align: middle;
-    margin-right: 6px;
+    width: 16px;
+    height: 16px;
     stroke-width: 2;
+    flex-shrink: 0;
 }
 
 /* 탭 콘텐츠 */
@@ -184,6 +190,9 @@ section h3 i,
 
 /* 버튼 스타일 */
 .refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: #1a1a1a;
     color: white;
     border: none;
@@ -699,6 +708,9 @@ section h4 {
 }
 
 .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: #1a1a1a;
     color: white;
     border: none;
@@ -718,6 +730,9 @@ section h4 {
 
 /* 쿠팡 버튼 */
 .coupang-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: #fff;
     color: #1a1a1a;
     border: 1px solid #1a1a1a;
@@ -737,6 +752,9 @@ section h4 {
 }
 
 .coupang-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: #fff;
     color: #1a1a1a;
     border: 1px solid #1a1a1a;
