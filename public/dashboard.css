@@ -7,10 +7,10 @@
 body {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #f5f5f5;
     min-height: 100vh;
     padding: 20px;
-    color: #2c3e50;
+    color: #1a1a1a;
 }
 
 .container {
@@ -22,19 +22,18 @@ body {
 .dashboard-header {
     text-align: center;
     margin-bottom: 30px;
-    color: white;
+    color: #1a1a1a;
 }
 
 .dashboard-header h1 {
     font-size: 2.5rem;
     margin-bottom: 8px;
     font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .dashboard-header p {
     font-size: 1.1rem;
-    opacity: 0.9;
+    color: #666;
 }
 
 /* 탭 네비게이션 */
@@ -51,26 +50,25 @@ body {
     align-items: center;
     gap: 8px;
     padding: 14px 28px;
-    border: none;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    border: 2px solid #e0e0e0;
+    background: white;
+    color: #666;
     font-size: 15px;
     font-weight: 600;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
 }
 
 .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+    border-color: #1a1a1a;
+    color: #1a1a1a;
 }
 
 .tab-btn.active {
-    background: white;
-    color: #5ac93b;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background: #1a1a1a;
+    color: white;
+    border-color: #1a1a1a;
 }
 
 .tab-icon {
@@ -81,9 +79,9 @@ body {
 .tab-content {
     display: none;
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     animation: fadeIn 0.3s ease;
 }
 
@@ -108,7 +106,7 @@ body {
 
 .tab-header h2 {
     font-size: 1.5rem;
-    color: #2c3e50;
+    color: #1a1a1a;
     font-weight: 700;
 }
 
@@ -131,7 +129,7 @@ body {
 .period-selector label {
     font-size: 14px;
     font-weight: 600;
-    color: #7f8c8d;
+    color: #666;
 }
 
 .product-dropdown,
@@ -139,16 +137,16 @@ body {
     padding: 10px 16px;
     font-size: 14px;
     font-weight: 600;
-    border: 2px solid #e0e6ed;
+    border: 2px solid #e0e0e0;
     border-radius: 10px;
     background: white;
-    color: #2c3e50;
+    color: #1a1a1a;
     cursor: pointer;
     outline: none;
     min-width: 150px;
     transition: all 0.3s ease;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235ac93b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a1a1a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 36px;
@@ -156,18 +154,18 @@ body {
 
 .product-dropdown:hover,
 .period-dropdown:hover {
-    border-color: #5ac93b;
+    border-color: #1a1a1a;
 }
 
 .product-dropdown:focus,
 .period-dropdown:focus {
-    border-color: #5ac93b;
-    box-shadow: 0 0 0 3px rgba(90, 201, 59, 0.15);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
 }
 
 /* 버튼 스타일 */
 .refresh-btn {
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -179,14 +177,15 @@ body {
 }
 
 .refresh-btn:hover {
+    background: #333;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 마지막 업데이트 */
 .last-update {
     font-size: 0.85rem;
-    color: #95a5a6;
+    color: #999;
     margin-bottom: 24px;
 }
 
@@ -195,13 +194,13 @@ body {
     text-align: center;
     padding: 60px 20px;
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .spinner {
     border: 4px solid #f0f0f0;
-    border-top: 4px solid #5ac93b;
+    border-top: 4px solid #1a1a1a;
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -227,21 +226,22 @@ body {
 
 /* 섹션 스타일 */
 section {
-    background: #f8f9fa;
-    border-radius: 16px;
+    background: #fafafa;
+    border-radius: 12px;
     padding: 24px;
     margin-bottom: 20px;
+    border: 1px solid #eee;
 }
 
 section h3 {
-    color: #2c3e50;
+    color: #1a1a1a;
     font-size: 1.2rem;
     margin-bottom: 16px;
     font-weight: 700;
 }
 
 section h4 {
-    color: #34495e;
+    color: #333;
     font-size: 1rem;
     margin: 20px 0 12px;
     font-weight: 600;
@@ -255,17 +255,17 @@ section h4 {
 }
 
 .wholesale-card {
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.3);
     transition: transform 0.2s ease;
 }
 
 .wholesale-card:hover {
     transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .wholesale-card .card-title {
@@ -276,7 +276,7 @@ section h4 {
 
 .wholesale-card .card-grade {
     font-size: 12px;
-    opacity: 0.85;
+    opacity: 0.7;
     margin-bottom: 12px;
 }
 
@@ -288,7 +288,7 @@ section h4 {
 
 .wholesale-card .card-unit {
     font-size: 11px;
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
 /* 비교 테이블 */
@@ -307,6 +307,7 @@ section h4 {
     background: white;
     border-radius: 12px;
     overflow: hidden;
+    border: 1px solid #e0e0e0;
 }
 
 .comparison-table th,
@@ -317,7 +318,7 @@ section h4 {
     font-weight: 600;
     color: white;
     font-size: 13px;
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
 }
 
 .comparison-table td,
@@ -331,7 +332,7 @@ section h4 {
 .comparison-table tbody tr:hover,
 .trend-table tbody tr:hover,
 .region-table tbody tr:hover {
-    background: #f8f9fa;
+    background: #fafafa;
 }
 
 /* 등급 배지 */
@@ -344,9 +345,9 @@ section h4 {
     color: white;
 }
 
-.grade-high { background: linear-gradient(135deg, #3498db, #2980b9); }
-.grade-mid { background: linear-gradient(135deg, #f39c12, #e67e22); }
-.grade-low { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+.grade-high { background: #1a1a1a; }
+.grade-mid { background: #666; }
+.grade-low { background: #999; }
 
 /* 가격 차이 */
 .price-diff.positive { color: #e74c3c; }
@@ -361,9 +362,9 @@ section h4 {
     font-size: 12px;
 }
 
-.margin-high { background: #d4edda; color: #155724; }
-.margin-mid { background: #fff3cd; color: #856404; }
-.margin-low { background: #f8d7da; color: #721c24; }
+.margin-high { background: #e8e8e8; color: #1a1a1a; }
+.margin-mid { background: #f0f0f0; color: #666; }
+.margin-low { background: #f5f5f5; color: #999; }
 
 /* 온라인 요약 */
 .online-summary {
@@ -378,18 +379,18 @@ section h4 {
     padding: 16px;
     border-radius: 10px;
     text-align: center;
-    border: 2px solid #e0e6ed;
+    border: 2px solid #e0e0e0;
     transition: all 0.3s ease;
 }
 
 .summary-card:hover {
-    border-color: #5ac93b;
+    border-color: #1a1a1a;
     transform: translateY(-2px);
 }
 
 .summary-card .label {
     font-size: 11px;
-    color: #7f8c8d;
+    color: #999;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
@@ -399,13 +400,13 @@ section h4 {
 .summary-card .value {
     font-size: 18px;
     font-weight: 700;
-    color: #5ac93b;
+    color: #1a1a1a;
     margin-bottom: 4px;
 }
 
 .summary-card .sub {
     font-size: 11px;
-    color: #95a5a6;
+    color: #999;
 }
 
 /* 온라인 리스트 */
@@ -419,22 +420,22 @@ section h4 {
     background: white;
     border-radius: 10px;
     padding: 14px;
-    border: 2px solid #e0e6ed;
+    border: 2px solid #e0e0e0;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .online-item:hover {
-    border-color: #5ac93b;
+    border-color: #1a1a1a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .online-item .rank {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     width: 26px;
     height: 26px;
@@ -448,7 +449,7 @@ section h4 {
 
 .online-item .item-title {
     font-size: 12px;
-    color: #2c3e50;
+    color: #1a1a1a;
     margin-bottom: 10px;
     line-height: 1.4;
     min-height: 34px;
@@ -459,20 +460,20 @@ section h4 {
 .online-item .item-price {
     font-size: 18px;
     font-weight: 700;
-    color: #5ac93b;
+    color: #1a1a1a;
     margin-bottom: 6px;
 }
 
 .online-item .item-mall {
     font-size: 11px;
-    color: #7f8c8d;
+    color: #999;
     margin-bottom: 10px;
 }
 
 .online-item .item-link {
     display: block;
     text-align: center;
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     text-decoration: none;
     padding: 8px;
@@ -483,7 +484,7 @@ section h4 {
 }
 
 .online-item .item-link:hover {
-    opacity: 0.9;
+    background: #333;
 }
 
 /* 차트 영역 */
@@ -495,11 +496,12 @@ section h4 {
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid #e0e0e0;
 }
 
 .chart-placeholder {
     text-align: center;
-    color: #95a5a6;
+    color: #999;
 }
 
 /* 바 차트 스타일 */
@@ -523,7 +525,7 @@ section h4 {
 
 .bar {
     width: 100%;
-    background: linear-gradient(180deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     border-radius: 6px 6px 0 0;
     transition: height 0.5s ease;
     min-height: 4px;
@@ -531,7 +533,7 @@ section h4 {
 
 .bar-label {
     font-size: 10px;
-    color: #7f8c8d;
+    color: #999;
     margin-top: 8px;
     text-align: center;
     white-space: nowrap;
@@ -539,7 +541,7 @@ section h4 {
 
 .bar-value {
     font-size: 10px;
-    color: #2c3e50;
+    color: #1a1a1a;
     font-weight: 600;
     margin-bottom: 4px;
 }
@@ -556,27 +558,27 @@ section h4 {
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    border: 2px solid #e0e6ed;
+    border: 2px solid #e0e0e0;
     transition: all 0.3s ease;
 }
 
 .region-card:hover {
-    border-color: #5ac93b;
+    border-color: #1a1a1a;
     transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .region-card .region-name {
     font-size: 16px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #1a1a1a;
     margin-bottom: 12px;
 }
 
 .region-card .region-price {
     font-size: 22px;
     font-weight: 700;
-    color: #5ac93b;
+    color: #1a1a1a;
     margin-bottom: 8px;
 }
 
@@ -587,7 +589,7 @@ section h4 {
 
 .region-card .region-change.up { color: #e74c3c; }
 .region-card .region-change.down { color: #27ae60; }
-.region-card .region-change.same { color: #95a5a6; }
+.region-card .region-change.same { color: #999; }
 
 /* 검색 섹션 */
 .search-controls {
@@ -600,7 +602,7 @@ section h4 {
     flex: 1;
     padding: 12px 20px;
     font-size: 14px;
-    border: 2px solid #e0e6ed;
+    border: 2px solid #e0e0e0;
     border-radius: 10px;
     outline: none;
     transition: all 0.3s ease;
@@ -608,12 +610,12 @@ section h4 {
 }
 
 .search-input:focus {
-    border-color: #5ac93b;
-    box-shadow: 0 0 0 3px rgba(90, 201, 59, 0.15);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
 }
 
 .search-btn {
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     border: none;
     padding: 12px 24px;
@@ -625,15 +627,16 @@ section h4 {
 }
 
 .search-btn:hover {
+    background: #333;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(90, 201, 59, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 쿠팡 버튼 */
 .coupang-btn {
-    background: linear-gradient(135deg, #f04343 0%, #c31d1d 100%);
-    color: white;
-    border: none;
+    background: white;
+    color: #1a1a1a;
+    border: 2px solid #1a1a1a;
     padding: 12px 24px;
     font-size: 14px;
     font-weight: 600;
@@ -643,14 +646,16 @@ section h4 {
 }
 
 .coupang-btn:hover {
+    background: #1a1a1a;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(240, 67, 67, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .coupang-link-btn {
-    background: linear-gradient(135deg, #f04343 0%, #c31d1d 100%);
-    color: white;
-    border: none;
+    background: white;
+    color: #1a1a1a;
+    border: 2px solid #1a1a1a;
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 600;
@@ -661,8 +666,9 @@ section h4 {
 }
 
 .coupang-link-btn:hover {
+    background: #1a1a1a;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(240, 67, 67, 0.4);
 }
 
 .search-results-header {
@@ -670,14 +676,15 @@ section h4 {
     align-items: center;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #1a1a1a;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #e0e6ed;
+    border-bottom: 2px solid #e0e0e0;
 }
 
 .search-results-header #searchQuery {
-    color: #5ac93b;
+    color: #1a1a1a;
+    font-weight: 700;
 }
 
 .search-results-list {
@@ -690,7 +697,7 @@ section h4 {
     grid-column: 1 / -1;
     text-align: center;
     padding: 60px 20px;
-    color: #95a5a6;
+    color: #999;
 }
 
 .search-placeholder p {
@@ -699,11 +706,11 @@ section h4 {
 
 .search-hint {
     font-size: 13px;
-    color: #bdc3c7;
+    color: #bbb;
 }
 
 .search-item {
-    background: #f8f9fa;
+    background: #fafafa;
     border-radius: 12px;
     padding: 16px;
     border: 2px solid transparent;
@@ -711,9 +718,9 @@ section h4 {
 }
 
 .search-item:hover {
-    border-color: #5ac93b;
+    border-color: #1a1a1a;
     transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .search-item-image {
@@ -728,7 +735,7 @@ section h4 {
 .search-item-title {
     font-size: 13px;
     font-weight: 500;
-    color: #2c3e50;
+    color: #1a1a1a;
     margin-bottom: 8px;
     height: 36px;
     overflow: hidden;
@@ -741,21 +748,21 @@ section h4 {
 
 .search-item-mall {
     font-size: 12px;
-    color: #7f8c8d;
+    color: #999;
     margin-bottom: 8px;
 }
 
 .search-item-price {
     font-size: 20px;
     font-weight: 700;
-    color: #5ac93b;
+    color: #1a1a1a;
     margin-bottom: 12px;
 }
 
 .search-item-link {
     display: block;
     text-align: center;
-    background: linear-gradient(135deg, #5ac93b 0%, #3d9e2a 100%);
+    background: #1a1a1a;
     color: white;
     text-decoration: none;
     padding: 10px;
@@ -766,14 +773,14 @@ section h4 {
 }
 
 .search-item-link:hover {
-    opacity: 0.9;
+    background: #333;
 }
 
 /* 데이터 없음 */
 .no-data {
     text-align: center;
     padding: 40px;
-    color: #95a5a6;
+    color: #999;
     font-size: 14px;
     grid-column: 1 / -1;
 }
