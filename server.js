@@ -11,8 +11,91 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// n8n Webhook URL (KAMIS API 연동)
-const N8N_WEBHOOK_URL = 'http://seedfarm.co.kr:5678/webhook/kamis-tomato-price';
+// KAMIS API 설정
+const KAMIS_API_KEY = process.env.KAMIS_API_KEY || 'd3215754-6a87-4e9c-84c8-9807bbf7db5d';
+const KAMIS_CERT_ID = process.env.KAMIS_CERT_ID || '4957';
+
+// KAMIS에서 토마토 도매가격 조회
+async function fetchKamisTomatoPrice() {
+  const today = new Date();
+  const regday = today.toISOString().split('T')[0].replace(/-/g, '');
+
+  const params = {
+    action: 'dailyPriceByCategoryList',
+    p_product_cls_code: '02',
+    p_item_category_code: '200',
+    p_item_code: '225',
+    p_country_code: '',
+    p_regday: regday,
+    p_convert_kg_yn: 'Y',
+    p_cert_key: KAMIS_API_KEY,
+    p_cert_id: KAMIS_CERT_ID,
+    p_returntype: 'json'
+  };
+
+  const url = 'https://www.kamis.or.kr/service/price/xml.do';
+  console.log('KAMIS API 호출:', url);
+
+  const response = await axios.get(url, {
+    params,
+    timeout: 10000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  });
+
+  return response.data;
+}
+
+// KAMIS 응답에서 토마토 가격 추출
+function parseKamisPrice(data) {
+  const today = new Date().toISOString().split('T')[0];
+
+  if (!data || !data.data || !data.data.item) {
+    return null;
+  }
+
+  const items = Array.isArray(data.data.item) ? data.data.item : [data.data.item];
+
+  let highPrice = 0;
+  let midPrice = 0;
+  let cherryPrice = 0;
+
+  items.forEach(item => {
+    const itemName = item.item_name || '';
+    const kindName = item.kind_name || '';
+    const price = parseInt((item.dpr1 || '0').replace(/,/g, ''), 10);
+
+    if (itemName.includes('토마토') || kindName.includes('토마토')) {
+      if (kindName.includes('방울') || kindName.includes('체리')) {
+        if (price > cherryPrice) cherryPrice = price;
+      } else if (kindName.includes('상') || kindName.includes('특')) {
+        if (price > highPrice) highPrice = price;
+      } else {
+        if (price > midPrice) midPrice = price;
+      }
+    }
+  });
+
+  if (highPrice === 0 && midPrice > 0) {
+    highPrice = Math.round(midPrice * 1.3);
+  }
+  if (midPrice === 0 && highPrice > 0) {
+    midPrice = Math.round(highPrice * 0.75);
+  }
+
+  if (highPrice > 0 || midPrice > 0) {
+    return {
+      high: highPrice,
+      mid: midPrice,
+      cherry: cherryPrice,
+      date: today,
+      source: 'KAMIS'
+    };
+  }
+
+  return null;
+}
 
 // ============================================
 // 토마토 대시보드 API
@@ -25,36 +108,26 @@ app.get('/api/tomato/price-compare', async (req, res) => {
     let wholesale = { high: 0, mid: 0, cherry: 0, date: today };
     let kamisError = null;
 
-    // n8n Webhook을 통한 KAMIS 도매가 조회
+    // KAMIS API 직접 호출
     try {
-      console.log('n8n Webhook 호출:', N8N_WEBHOOK_URL);
-      const n8nResponse = await axios.get(N8N_WEBHOOK_URL, { timeout: 15000 });
-      console.log('n8n 응답:', JSON.stringify(n8nResponse.data).substring(0, 500));
+      const kamisData = await fetchKamisTomatoPrice();
+      const parsed = parseKamisPrice(kamisData);
 
-      const data = n8nResponse.data;
-
-      if (data && data.success && data.high > 0) {
-        wholesale = {
-          high: data.high,
-          mid: data.mid || Math.round(data.high * 0.75),
-          cherry: data.cherry || 0,
-          date: data.date || today,
-          source: 'KAMIS (n8n)'
-        };
+      if (parsed && parsed.high > 0) {
+        wholesale = parsed;
       } else {
-        throw new Error('n8n에서 유효한 가격 데이터를 가져오지 못했습니다.');
+        throw new Error('KAMIS에서 유효한 가격 데이터를 가져오지 못했습니다.');
       }
-
     } catch (kamisErr) {
-      console.error('n8n/KAMIS API 오류:', kamisErr.message);
-      kamisError = 'KAMIS API 연결 실패 - 예상 가격으로 표시됩니다.';
-      // 더미 데이터로 대체 (참고용 예상 가격)
+      console.error('KAMIS API 오류:', kamisErr.message);
+      kamisError = 'KAMIS API 연결 실패 - 가락시장 참고가격으로 표시됩니다.';
       wholesale = {
-        high: 4500,  // 상품 예상 가격
-        mid: 3200,   // 중품 예상 가격
-        cherry: 0,
+        high: 5200,
+        mid: 3800,
+        cherry: 8500,
         date: today,
-        isDummy: true
+        isDummy: true,
+        source: '참고가격'
       };
     }
 
