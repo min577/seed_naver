@@ -20,12 +20,12 @@
       "dest": "/api/general-search.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "src": "^/$",
+      "dest": "/public/tomato-dashboard.html"
     },
     {
-      "src": "/",
-      "dest": "/public/tomato-dashboard.html"
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }
