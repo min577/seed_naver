@@ -3,36 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>네이버 쇼핑 최저가 검색</title>
-    <link rel="stylesheet" href="style.css">
+    <title>KAMIS 농산물 가격 정보 통합 대시보드</title>
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🛒 네이버 쇼핑 최저가 검색</h1>
-            <p>원하는 상품을 검색하고 최저가를 확인하세요!</p>
+        <!-- 헤더 -->
+        <header class="dashboard-header">
+            <h1>KAMIS 농산물 가격 정보</h1>
+            <p>도매시장 가격 정보 및 온라인 가격 비교 통합 플랫폼</p>
         </header>
 
-        <div class="search-box">
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="검색어를 입력하세요 (예: 아이폰, 노트북, 키보드)"
-                autocomplete="off"
-            >
-            <button id="searchBtn">검색</button>
-        </div>
+        <!-- 탭 네비게이션 -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="price-compare">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">가격 비교</span>
+            </button>
+            <button class="tab-btn" data-tab="price-trend">
+                <span class="tab-icon">📈</span>
+                <span class="tab-label">가격 추이</span>
+            </button>
+            <button class="tab-btn" data-tab="region-price">
+                <span class="tab-icon">🗺️</span>
+                <span class="tab-label">지역별 가격</span>
+            </button>
+            <button class="tab-btn" data-tab="search">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">상품 검색</span>
+            </button>
+        </nav>
 
+        <!-- 로딩 표시 -->
         <div id="loading" class="loading" style="display: none;">
             <div class="spinner"></div>
-            <p>검색 중...</p>
+            <p>데이터 로딩 중...</p>
         </div>
 
+        <!-- 에러 메시지 -->
         <div id="error" class="error" style="display: none;"></div>
 
-        <div id="results" class="results"></div>
+        <!-- ========== 탭 1: 가격 비교 ========== -->
+        <div id="tab-price-compare" class="tab-content active">
+            <div class="tab-header">
+                <h2>도매시장 vs 온라인몰 가격 비교</h2>
+                <div class="tab-controls">
+                    <div class="product-selector">
+                        <label for="productSelect">품목:</label>
+                        <select id="productSelect" class="product-dropdown">
+                            <option value="tomato">🍅 토마토</option>
+                            <option value="apple">🍎 사과</option>
+                            <option value="pear">🍐 배</option>
+                            <option value="grape">🍇 포도</option>
+                            <option value="strawberry">🍓 딸기</option>
+                            <option value="watermelon">🍉 수박</option>
+                            <option value="cucumber">🥒 오이</option>
+                            <option value="pepper">🌶️ 고추</option>
+                            <option value="cabbage">🥬 배추</option>
+                            <option value="onion">🧅 양파</option>
+                            <option value="potato">🥔 감자</option>
+                            <option value="garlic">🧄 마늘</option>
+                        </select>
+                    </div>
+                    <button id="refreshCompareBtn" class="refresh-btn">🔄 새로고침</button>
+                </div>
+            </div>
+
+            <div class="last-update">
+                마지막 업데이트: <span id="lastUpdate">-</span>
+            </div>
+
+            <!-- 가격 비교 콘텐츠 -->
+            <div id="compareContent" class="compare-content">
+                <!-- 도매시장 가격 요약 -->
+                <section class="wholesale-section">
+                    <h3>🏪 도매시장 가격 (1kg 기준)</h3>
+                    <div class="wholesale-cards" id="wholesaleCards"></div>
+                </section>
+
+                <!-- 가격 비교 테이블 -->
+                <section class="comparison-section">
+                    <h3>📊 등급별 가격 비교</h3>
+                    <div class="comparison-table-wrapper">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>등급</th>
+                                    <th>도매시장</th>
+                                    <th>온라인 최저가</th>
+                                    <th>가격 차이</th>
+                                    <th>마진율</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 온라인 가격 상세 -->
+                <section class="online-section">
+                    <h3>🛒 온라인몰 가격 상세</h3>
+                    <div class="online-summary" id="onlineSummary"></div>
+                    <h4>상위 10개 판매처</h4>
+                    <div class="online-list" id="onlineList"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========== 탭 2: 가격 추이 ========== -->
+        <div id="tab-price-trend" class="tab-content">
+            <div class="tab-header">
+                <h2>가격 추이 분석</h2>
+                <div class="tab-controls">
+                    <div class="product-selector">
+                        <label for="trendProductSelect">품목:</label>
+                        <select id="trendProductSelect" class="product-dropdown">
+                            <option value="tomato">🍅 토마토</option>
+                            <option value="apple">🍎 사과</option>
+                            <option value="pear">🍐 배</option>
+                            <option value="grape">🍇 포도</option>
+                            <option value="strawberry">🍓 딸기</option>
+                            <option value="watermelon">🍉 수박</option>
+                            <option value="cucumber">🥒 오이</option>
+                            <option value="pepper">🌶️ 고추</option>
+                            <option value="cabbage">🥬 배추</option>
+                            <option value="onion">🧅 양파</option>
+                            <option value="potato">🥔 감자</option>
+                            <option value="garlic">🧄 마늘</option>
+                        </select>
+                    </div>
+                    <div class="period-selector">
+                        <label for="periodSelect">기간:</label>
+                        <select id="periodSelect" class="period-dropdown">
+                            <option value="daily">일별 (최근 30일)</option>
+                            <option value="monthly">월별 (최근 12개월)</option>
+                            <option value="yearly">연도별 (최근 5년)</option>
+                        </select>
+                    </div>
+                    <button id="refreshTrendBtn" class="refresh-btn">🔄 조회</button>
+                </div>
+            </div>
+
+            <div id="trendContent" class="trend-content">
+                <!-- 가격 추이 차트 -->
+                <section class="chart-section">
+                    <h3>📈 가격 변동 추이</h3>
+                    <div class="chart-container" id="priceChart"></div>
+                </section>
+
+                <!-- 가격 추이 테이블 -->
+                <section class="trend-table-section">
+                    <h3>📋 상세 데이터</h3>
+                    <div class="trend-table-wrapper">
+                        <table class="trend-table">
+                            <thead id="trendTableHead"></thead>
+                            <tbody id="trendTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========== 탭 3: 지역별 가격 ========== -->
+        <div id="tab-region-price" class="tab-content">
+            <div class="tab-header">
+                <h2>지역별 도소매 가격</h2>
+                <div class="tab-controls">
+                    <div class="product-selector">
+                        <label for="regionProductSelect">품목:</label>
+                        <select id="regionProductSelect" class="product-dropdown">
+                            <option value="tomato">🍅 토마토</option>
+                            <option value="apple">🍎 사과</option>
+                            <option value="pear">🍐 배</option>
+                            <option value="grape">🍇 포도</option>
+                            <option value="strawberry">🍓 딸기</option>
+                            <option value="watermelon">🍉 수박</option>
+                            <option value="cucumber">🥒 오이</option>
+                            <option value="pepper">🌶️ 고추</option>
+                            <option value="cabbage">🥬 배추</option>
+                            <option value="onion">🧅 양파</option>
+                            <option value="potato">🥔 감자</option>
+                            <option value="garlic">🧄 마늘</option>
+                        </select>
+                    </div>
+                    <button id="refreshRegionBtn" class="refresh-btn">🔄 조회</button>
+                </div>
+            </div>
+
+            <div id="regionContent" class="region-content">
+                <!-- 지역별 가격 테이블 -->
+                <section class="region-table-section">
+                    <h3>🗺️ 지역별 가격 현황</h3>
+                    <div class="region-table-wrapper">
+                        <table class="region-table">
+                            <thead>
+                                <tr>
+                                    <th>지역</th>
+                                    <th>도매가격</th>
+                                    <th>소매가격</th>
+                                    <th>전일 대비</th>
+                                </tr>
+                            </thead>
+                            <tbody id="regionTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 지역 비교 카드 -->
+                <section class="region-cards-section">
+                    <h3>📍 주요 지역 비교</h3>
+                    <div class="region-cards" id="regionCards"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========== 탭 4: 상품 검색 ========== -->
+        <div id="tab-search" class="tab-content">
+            <div class="tab-header">
+                <h2>네이버 쇼핑 상품 검색</h2>
+                <div class="tab-controls search-controls">
+                    <input type="text" id="searchInput" class="search-input" placeholder="검색어 입력 (예: 사과 1kg, 배추 1포기)">
+                    <button id="searchBtn" class="search-btn">🔍 검색</button>
+                </div>
+            </div>
+
+            <div id="searchContent" class="search-content">
+                <div class="search-results-header" id="searchResultsHeader" style="display: none;">
+                    <span id="searchQuery"></span> 검색 결과
+                </div>
+                <div class="search-results-list" id="searchResultsList">
+                    <div class="search-placeholder">
+                        <p>검색어를 입력하고 검색 버튼을 클릭하세요.</p>
+                        <p class="search-hint">예: 사과 1kg, 배추 1포기, 딸기 500g</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="script.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>

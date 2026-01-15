@@ -16,6 +16,14 @@
       "dest": "/api/product-price-compare.js"
     },
     {
+      "src": "/api/price-trend",
+      "dest": "/api/price-trend.js"
+    },
+    {
+      "src": "/api/region-price",
+      "dest": "/api/region-price.js"
+    },
+    {
       "src": "/api/tomato/price-compare",
       "dest": "/api/tomato-price-compare.js"
     },
@@ -25,6 +33,14 @@
     },
     {
       "src": "^/$",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/old",
       "dest": "/public/tomato-dashboard.html"
     },
     {
