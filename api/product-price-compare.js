@@ -71,8 +71,8 @@ const PRODUCT_INFO = {
     fallbackPrices: { high: 2500, mid: 1800 }
   },
   potato: {
-    categoryCode: '200',
-    itemCode: '216',
+    categoryCode: '100',
+    itemCode: '152',
     name: '감자',
     naverQuery: '감자 1kg',
     excludeKeywords: ['칩', '튀김', '전분', '가루', '분말', '씨앗', '씨감자'],

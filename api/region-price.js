@@ -18,7 +18,7 @@ const PRODUCT_CODES = {
   pepper: { categoryCode: '200', itemCode: '212', kindCode: '01', name: '고추' },
   cabbage: { categoryCode: '200', itemCode: '211', kindCode: '01', name: '배추' },
   onion: { categoryCode: '200', itemCode: '215', kindCode: '01', name: '양파' },
-  potato: { categoryCode: '200', itemCode: '216', kindCode: '01', name: '감자' },
+  potato: { categoryCode: '100', itemCode: '152', kindCode: '01', name: '감자' },
   garlic: { categoryCode: '200', itemCode: '214', kindCode: '01', name: '마늘' }
 };
 
