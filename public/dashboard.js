@@ -121,6 +121,8 @@ function initEventListeners() {
 
     // 탭 4: 검색
     searchBtn.addEventListener('click', handleSearch);
+    document.getElementById('coupangBtn').addEventListener('click', openCoupangSearch);
+    document.getElementById('coupangLinkBtn').addEventListener('click', openCoupangSearch);
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
     });
@@ -515,6 +517,18 @@ function renderEmptyRegionCards() {
 // ============================================
 // 탭 4: 상품 검색
 // ============================================
+
+// 쿠팡 검색 페이지 열기
+function openCoupangSearch() {
+    const query = searchInput.value.trim();
+    if (!query) {
+        showError('검색어를 입력해주세요.');
+        return;
+    }
+    const coupangUrl = `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(query)}`;
+    window.open(coupangUrl, '_blank');
+}
+
 async function handleSearch() {
     const query = searchInput.value.trim();
 

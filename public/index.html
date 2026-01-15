@@ -220,16 +220,18 @@
         <!-- ========== 탭 4: 상품 검색 ========== -->
         <div id="tab-search" class="tab-content">
             <div class="tab-header">
-                <h2>네이버 쇼핑 상품 검색</h2>
+                <h2>상품 검색</h2>
                 <div class="tab-controls search-controls">
                     <input type="text" id="searchInput" class="search-input" placeholder="검색어 입력 (예: 사과 1kg, 배추 1포기)">
-                    <button id="searchBtn" class="search-btn">🔍 검색</button>
+                    <button id="searchBtn" class="search-btn">🔍 네이버</button>
+                    <button id="coupangBtn" class="coupang-btn">🛒 쿠팡</button>
                 </div>
             </div>
 
             <div id="searchContent" class="search-content">
                 <div class="search-results-header" id="searchResultsHeader" style="display: none;">
                     <span id="searchQuery"></span> 검색 결과
+                    <button id="coupangLinkBtn" class="coupang-link-btn">🛒 쿠팡에서 보기</button>
                 </div>
                 <div class="search-results-list" id="searchResultsList">
                     <div class="search-placeholder">
