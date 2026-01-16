@@ -574,7 +574,61 @@ section h4 {
     color: #999;
 }
 
-/* 바 차트 스타일 */
+/* 선 그래프 스타일 */
+.line-chart-container {
+    width: 100%;
+    height: 300px;
+    padding: 10px;
+}
+
+.line-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.line-chart .grid-line {
+    stroke: #e0e0e0;
+    stroke-width: 1;
+    stroke-dasharray: 4, 4;
+}
+
+.line-chart .chart-line {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.line-chart .chart-area {
+    fill: url(#areaGradient);
+    fill: rgba(37, 99, 235, 0.15);
+}
+
+.line-chart .chart-point {
+    fill: #fff;
+    stroke: #2563eb;
+    stroke-width: 2;
+    transition: r 0.2s ease;
+}
+
+.line-chart .chart-point:hover {
+    r: 8;
+}
+
+.line-chart .x-label {
+    font-size: 11px;
+    fill: #666;
+    text-anchor: middle;
+}
+
+.line-chart .y-label {
+    font-size: 10px;
+    fill: #666;
+    text-anchor: end;
+}
+
+/* 바 차트 스타일 (물동량용) */
 .bar-chart {
     width: 100%;
     height: 300px;

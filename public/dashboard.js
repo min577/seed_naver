@@ -403,20 +403,73 @@ function renderPriceChart(data) {
         return;
     }
 
-    const maxPrice = Math.max(...items.map(i => i.price || 0));
+    const displayItems = items.slice(-15);
+    const maxPrice = Math.max(...displayItems.map(i => i.price || 0));
+    const minPrice = Math.min(...displayItems.map(i => i.price || 0));
+    const priceRange = maxPrice - minPrice || 1;
+    const padding = priceRange * 0.1;
 
-    let html = '<div class="bar-chart">';
-    items.slice(-15).forEach(item => {
-        const height = maxPrice > 0 ? Math.round((item.price / maxPrice) * 250) : 0;
-        html += `
-            <div class="bar-item">
-                <div class="bar-value">${formatPrice(item.price)}</div>
-                <div class="bar" style="height: ${height}px"></div>
-                <div class="bar-label">${item.label}</div>
-            </div>
-        `;
+    const chartWidth = 800;
+    const chartHeight = 250;
+    const marginTop = 30;
+    const marginBottom = 40;
+    const marginLeft = 60;
+    const marginRight = 20;
+    const graphWidth = chartWidth - marginLeft - marginRight;
+    const graphHeight = chartHeight - marginTop - marginBottom;
+
+    // 포인트 좌표 계산
+    const points = displayItems.map((item, index) => {
+        const x = marginLeft + (index / (displayItems.length - 1 || 1)) * graphWidth;
+        const y = marginTop + graphHeight - ((item.price - minPrice + padding) / (priceRange + padding * 2)) * graphHeight;
+        return { x, y, price: item.price, label: item.label };
     });
-    html += '</div>';
+
+    // SVG 경로 생성
+    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    // 영역 채우기 경로
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${marginTop + graphHeight} L ${points[0].x} ${marginTop + graphHeight} Z`;
+
+    // Y축 눈금 (5개)
+    const yTicks = [];
+    for (let i = 0; i <= 4; i++) {
+        const price = minPrice - padding + (priceRange + padding * 2) * (i / 4);
+        const y = marginTop + graphHeight - (graphHeight * i / 4);
+        yTicks.push({ y, price: Math.round(price) });
+    }
+
+    let html = `
+        <div class="line-chart-container">
+            <svg class="line-chart" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMidYMid meet">
+                <!-- 그리드 라인 -->
+                ${yTicks.map(tick => `
+                    <line x1="${marginLeft}" y1="${tick.y}" x2="${chartWidth - marginRight}" y2="${tick.y}" class="grid-line" />
+                `).join('')}
+
+                <!-- Y축 레이블 -->
+                ${yTicks.map(tick => `
+                    <text x="${marginLeft - 10}" y="${tick.y + 4}" class="y-label">${formatPrice(tick.price)}</text>
+                `).join('')}
+
+                <!-- 영역 채우기 -->
+                <path d="${areaPath}" class="chart-area" />
+
+                <!-- 선 그래프 -->
+                <path d="${linePath}" class="chart-line" />
+
+                <!-- 데이터 포인트 -->
+                ${points.map((p, i) => `
+                    <circle cx="${p.x}" cy="${p.y}" r="5" class="chart-point" />
+                `).join('')}
+
+                <!-- X축 레이블 -->
+                ${points.filter((_, i) => displayItems.length <= 7 || i % Math.ceil(displayItems.length / 7) === 0 || i === displayItems.length - 1).map(p => `
+                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
+                `).join('')}
+            </svg>
+        </div>
+    `;
 
     priceChart.innerHTML = html;
 }
