@@ -471,7 +471,7 @@ function renderPriceChart(data) {
 
                 <!-- X축 레이블 -->
                 ${points.map(p => `
-                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
+                    <text x="${p.x}" y="${chartHeight - 35}" class="x-label">${p.label}</text>
                 `).join('')}
             </svg>
         </div>
