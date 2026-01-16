@@ -423,8 +423,12 @@ function renderTrendTable(data) {
         return;
     }
 
-    items.forEach((item, index) => {
-        const prevPrice = index > 0 ? items[index - 1].price : item.price;
+    // 최근 일자가 먼저 보이도록 역순 정렬
+    const reversedItems = [...items].reverse();
+
+    reversedItems.forEach((item, index) => {
+        // 역순이므로 다음 인덱스가 이전 날짜 (전기)
+        const prevPrice = index < reversedItems.length - 1 ? reversedItems[index + 1].price : item.price;
         const change = item.price - prevPrice;
         const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
         const changeText = change === 0 ? '-' : `${change > 0 ? '+' : ''}${formatPrice(change)}`;
