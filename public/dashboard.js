@@ -286,8 +286,7 @@ function renderOnlineSummary(data) {
     const items = [
         { label: '최저가', value: formatPrice(online.lowest_price || 0), sub: online.lowest_mall || '-' },
         { label: '중간가', value: formatPrice(online.median_price || 0), sub: '' },
-        { label: '평균가', value: formatPrice(online.average_price || 0), sub: '' },
-        { label: '조사 샘플', value: (online.mall_count || 0) + '개', sub: '' }
+        { label: '평균가', value: formatPrice(online.average_price || 0), sub: '' }
     ];
 
     items.forEach(item => {
