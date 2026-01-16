@@ -47,8 +47,20 @@ async function fetchGarakVolumeData(date) {
   try {
     const response = await axios.get(url, {
       timeout: 15000,
-      params: date ? { P_SRCH_DATE: date } : {}
+      params: date ? { P_SRCH_DATE: date } : {},
+      headers: {
+        'Accept': 'application/json'
+      },
+      validateStatus: function (status) {
+        return status >= 200 && status < 500;
+      }
     });
+
+    // 응답이 JSON인지 확인
+    if (typeof response.data === 'string') {
+      console.error('API 응답이 JSON이 아닙니다:', response.data.substring(0, 100));
+      return null;
+    }
 
     return response.data;
   } catch (error) {
