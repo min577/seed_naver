@@ -531,22 +531,30 @@ section h4 {
 
 .online-item .item-link {
     flex-shrink: 0;
-    display: inline-block;
-    background: #fff;
-    color: #1a1a1a;
-    border: 1px solid #ccc;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    color: #2563eb;
+    border: 1px solid #2563eb;
     text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-weight: 500;
     font-size: 12px;
     transition: all 0.2s ease;
 }
 
+.online-item .item-link .link-icon {
+    width: 14px;
+    height: 14px;
+}
+
 .online-item .item-link:hover {
-    background: #1a1a1a;
+    background: #2563eb;
     color: white;
-    border-color: #1a1a1a;
+    border-color: #2563eb;
+    transform: translateX(2px);
 }
 
 /* 차트 영역 */

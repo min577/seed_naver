@@ -316,10 +316,15 @@ function renderOnlineList(data) {
                 <div class="item-mall">${item.mall}</div>
             </div>
             <div class="item-price">${formatPrice(item.price)}</div>
-            <a href="${item.link}" target="_blank" class="item-link">구매</a>
+            <a href="${item.link}" target="_blank" class="item-link"><i data-lucide="external-link" class="link-icon"></i>바로가기</a>
         `;
         onlineList.appendChild(div);
     });
+
+    // Lucide 아이콘 초기화
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 function updateLastUpdate(date) {
