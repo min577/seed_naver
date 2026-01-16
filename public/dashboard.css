@@ -607,12 +607,15 @@ section h4 {
 
 /* 지역 카드 */
 .region-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 12px;
 }
 
 .region-card {
+    width: 160px;
+    flex-shrink: 0;
     background: #fff;
     border-radius: 12px;
     padding: 16px;
@@ -664,15 +667,44 @@ section h4 {
     font-size: 15px;
     font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     margin-top: 4px;
 }
 
-.region-card .region-price {
-    font-size: 20px;
+.region-card .region-prices {
+    margin-bottom: 10px;
+}
+
+.region-card .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.region-card .price-row:last-child {
+    border-bottom: none;
+}
+
+.region-card .price-row.wholesale {
+    opacity: 0.7;
+}
+
+.region-card .price-label {
+    font-size: 12px;
+    color: #777;
+    font-weight: 600;
+}
+
+.region-card .price-value {
+    font-size: 15px;
     font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 6px;
+}
+
+.region-card .price-row.wholesale .price-value {
+    color: #555;
 }
 
 .region-card .region-change {

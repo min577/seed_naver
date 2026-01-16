@@ -39,13 +39,10 @@ const REGION_CODES = {
   '3911': '제주'
 };
 
-// 지역별 가격 정보 조회 (API 10번: 최근일자 지역별 도.소매가격정보)
-async function fetchRegionPrice(productKey) {
+// 지역별 소매가격 정보 조회 (API 10번: 최근일자 지역별 도.소매가격정보)
+async function fetchRegionRetailPrice(productKey) {
   const product = PRODUCT_CODES[productKey];
   if (!product) return null;
-
-  const today = new Date();
-  const regday = today.toISOString().split('T')[0].replace(/-/g, '');
 
   const params = {
     action: 'recentlyAreaPriceTrendList',
@@ -73,27 +70,23 @@ async function fetchRegionPrice(productKey) {
 
     return response.data;
   } catch (error) {
-    console.error('KAMIS 지역별 가격 조회 오류:', error.message);
+    console.error('KAMIS 지역별 소매가격 조회 오류:', error.message);
     return null;
   }
 }
 
-// 지역별 품목별 가격 조회 (API 14번)
-async function fetchRegionProductPrice(productKey) {
+// 지역별 도매가격 정보 조회
+async function fetchRegionWholesalePrice(productKey) {
   const product = PRODUCT_CODES[productKey];
   if (!product) return null;
 
-  const today = new Date();
-  const regday = today.toISOString().split('T')[0].replace(/-/g, '');
-
   const params = {
-    action: 'itemAreaPriceList',
-    p_productclscode: '01',
-    p_regday: regday,
+    action: 'recentlyAreaPriceTrendList',
+    p_productclscode: '02', // 도매
     p_itemcategorycode: product.categoryCode,
     p_itemcode: product.itemCode,
     p_kindcode: product.kindCode,
-    p_productrankcode: '04',
+    p_productrankcode: '04', // 상품
     p_convert_kg_yn: 'Y',
     p_cert_key: KAMIS_API_KEY,
     p_cert_id: KAMIS_CERT_ID,
@@ -113,13 +106,13 @@ async function fetchRegionProductPrice(productKey) {
 
     return response.data;
   } catch (error) {
-    console.error('KAMIS 지역별 품목 가격 조회 오류:', error.message);
+    console.error('KAMIS 지역별 도매가격 조회 오류:', error.message);
     return null;
   }
 }
 
-// 응답 데이터 파싱
-function parseRegionData(data) {
+// 응답 데이터 파싱 (타입: retail 또는 wholesale)
+function parseRegionData(data, priceType = 'retail') {
   if (!data || !data.data || !data.data.item) {
     return [];
   }
@@ -138,22 +131,61 @@ function parseRegionData(data) {
       result.push({
         region: regionName,
         regionCode: regionCode,
-        wholesalePrice: 0,
-        retailPrice: price,
+        price: price,
+        priceType: priceType,
         change: prevPrice > 0 ? price - prevPrice : 0
       });
     }
   });
 
-  // 중복 제거 및 정렬
+  // 중복 제거
   const uniqueRegions = {};
   result.forEach(item => {
-    if (!uniqueRegions[item.region] || item.retailPrice > uniqueRegions[item.region].retailPrice) {
+    if (!uniqueRegions[item.region] || item.price > uniqueRegions[item.region].price) {
       uniqueRegions[item.region] = item;
     }
   });
 
-  return Object.values(uniqueRegions).sort((a, b) => b.retailPrice - a.retailPrice);
+  return Object.values(uniqueRegions);
+}
+
+// 도매/소매 데이터 병합
+function mergeRegionData(retailData, wholesaleData) {
+  const merged = {};
+
+  // 소매 데이터 먼저 추가
+  retailData.forEach(item => {
+    merged[item.region] = {
+      region: item.region,
+      regionCode: item.regionCode,
+      retailPrice: item.price,
+      wholesalePrice: 0,
+      retailChange: item.change
+    };
+  });
+
+  // 도매 데이터 병합
+  wholesaleData.forEach(item => {
+    if (merged[item.region]) {
+      merged[item.region].wholesalePrice = item.price;
+      merged[item.region].wholesaleChange = item.change;
+    } else {
+      merged[item.region] = {
+        region: item.region,
+        regionCode: item.regionCode,
+        retailPrice: 0,
+        wholesalePrice: item.price,
+        wholesaleChange: item.change
+      };
+    }
+  });
+
+  // 소매가격 기준으로 정렬 (소매가격이 없으면 도매가격 기준)
+  return Object.values(merged).sort((a, b) => {
+    const priceA = a.retailPrice || a.wholesalePrice;
+    const priceB = b.retailPrice || b.wholesalePrice;
+    return priceB - priceA;
+  });
 }
 
 // 더미 데이터 생성
@@ -206,17 +238,19 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 먼저 API 14번 시도
-    let data = await fetchRegionProductPrice(productKey);
-    let items = parseRegionData(data);
+    // 소매가격과 도매가격을 병렬로 조회
+    const [retailData, wholesaleData] = await Promise.all([
+      fetchRegionRetailPrice(productKey),
+      fetchRegionWholesalePrice(productKey)
+    ]);
 
-    // 데이터가 없으면 API 10번 시도
-    if (items.length === 0) {
-      data = await fetchRegionPrice(productKey);
-      items = parseRegionData(data);
-    }
+    const retailItems = parseRegionData(retailData, 'retail');
+    const wholesaleItems = parseRegionData(wholesaleData, 'wholesale');
 
-    // 여전히 데이터가 없으면 더미 데이터 사용
+    // 데이터 병합
+    let items = mergeRegionData(retailItems, wholesaleItems);
+
+    // 데이터가 없으면 더미 데이터 사용
     if (items.length === 0) {
       items = generateDummyData(productKey);
       return res.status(200).json({
