@@ -29,6 +29,10 @@
                 <i data-lucide="map-pin" class="tab-icon"></i>
                 <span class="tab-label">지역별 가격</span>
             </button>
+            <button class="tab-btn" data-tab="volume">
+                <i data-lucide="truck" class="tab-icon"></i>
+                <span class="tab-label">물동량</span>
+            </button>
             <button class="tab-btn" data-tab="search">
                 <i data-lucide="search" class="tab-icon"></i>
                 <span class="tab-label">상품 검색</span>
@@ -94,7 +98,6 @@
                                     <th>소매가격</th>
                                     <th>온라인 최저가</th>
                                     <th>가격 차이</th>
-                                    <th>마진율</th>
                                 </tr>
                             </thead>
                             <tbody id="comparisonBody"></tbody>
@@ -201,7 +204,45 @@
             </div>
         </div>
 
-        <!-- ========== 탭 4: 상품 검색 ========== -->
+        <!-- ========== 탭 4: 물동량 ========== -->
+        <div id="tab-volume" class="tab-content">
+            <div class="tab-header">
+                <h2>도매시장 물동량 현황</h2>
+                <div class="tab-controls">
+                    <div class="view-selector">
+                        <label for="volumeViewSelect">보기:</label>
+                        <select id="volumeViewSelect" class="view-dropdown">
+                            <option value="market">도매시장별</option>
+                            <option value="product">품목별</option>
+                            <option value="trend">일별 추이</option>
+                        </select>
+                    </div>
+                    <button id="refreshVolumeBtn" class="refresh-btn"><i data-lucide="refresh-cw"></i> 조회</button>
+                </div>
+            </div>
+
+            <div id="volumeContent" class="volume-content">
+                <!-- 물동량 요약 -->
+                <section class="volume-summary-section">
+                    <h3><i data-lucide="bar-chart-2"></i> 물동량 요약</h3>
+                    <div class="volume-summary" id="volumeSummary"></div>
+                </section>
+
+                <!-- 물동량 상세 -->
+                <section class="volume-detail-section">
+                    <h3><i data-lucide="list"></i> 상세 현황</h3>
+                    <div class="volume-cards" id="volumeCards"></div>
+                </section>
+
+                <!-- 물동량 차트 (추이 뷰에서만 표시) -->
+                <section class="volume-chart-section" id="volumeChartSection" style="display: none;">
+                    <h3><i data-lucide="trending-up"></i> 일별 물동량 추이</h3>
+                    <div class="volume-chart-container" id="volumeChart"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========== 탭 5: 상품 검색 ========== -->
         <div id="tab-search" class="tab-content">
             <div class="tab-header">
                 <h2>상품 검색</h2>

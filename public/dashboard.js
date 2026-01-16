@@ -32,7 +32,15 @@ const regionProductSelect = document.getElementById('regionProductSelect');
 const refreshRegionBtn = document.getElementById('refreshRegionBtn');
 const regionCards = document.getElementById('regionCards');
 
-// 탭 4: 검색
+// 탭 4: 물동량
+const volumeViewSelect = document.getElementById('volumeViewSelect');
+const refreshVolumeBtn = document.getElementById('refreshVolumeBtn');
+const volumeSummary = document.getElementById('volumeSummary');
+const volumeCards = document.getElementById('volumeCards');
+const volumeChartSection = document.getElementById('volumeChartSection');
+const volumeChart = document.getElementById('volumeChart');
+
+// 탭 5: 검색
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const searchResultsHeader = document.getElementById('searchResultsHeader');
@@ -98,6 +106,8 @@ function switchTab(tabId) {
         fetchPriceTrend();
     } else if (tabId === 'region-price') {
         fetchRegionPrice();
+    } else if (tabId === 'volume') {
+        fetchVolumeInfo();
     }
 }
 
@@ -118,7 +128,11 @@ function initEventListeners() {
     regionProductSelect.addEventListener('change', fetchRegionPrice);
     refreshRegionBtn.addEventListener('click', fetchRegionPrice);
 
-    // 탭 4: 검색
+    // 탭 4: 물동량
+    volumeViewSelect.addEventListener('change', fetchVolumeInfo);
+    refreshVolumeBtn.addEventListener('click', fetchVolumeInfo);
+
+    // 탭 5: 검색
     searchBtn.addEventListener('click', handleSearch);
     document.getElementById('coupangBtn').addEventListener('click', openCoupangSearch);
     document.getElementById('coupangLinkBtn').addEventListener('click', openCoupangSearch);
@@ -247,14 +261,7 @@ function renderComparisonTable(data) {
         if (row.wholesalePrice === 0 && row.onlinePrice === 0) return;
 
         const diff = row.onlinePrice - row.wholesalePrice;
-        const diffPercent = row.wholesalePrice > 0
-            ? Math.round((diff / row.wholesalePrice) * 100)
-            : 0;
-
         const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : '';
-        const marginClass = diffPercent >= 50 ? 'margin-high'
-            : diffPercent >= 30 ? 'margin-mid'
-            : 'margin-low';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -263,13 +270,12 @@ function renderComparisonTable(data) {
             <td>${formatPrice(row.retailPrice)}</td>
             <td>${formatPrice(row.onlinePrice)}</td>
             <td class="price-diff ${diffClass}">${diff >= 0 ? '+' : ''}${formatPrice(diff)}</td>
-            <td><span class="margin-rate ${marginClass}">${diffPercent >= 0 ? '+' : ''}${diffPercent}%</span></td>
         `;
         comparisonBody.appendChild(tr);
     });
 
     if (comparisonBody.children.length === 0) {
-        comparisonBody.innerHTML = '<tr><td colspan="6" class="no-data">데이터가 없습니다.</td></tr>';
+        comparisonBody.innerHTML = '<tr><td colspan="5" class="no-data">데이터가 없습니다.</td></tr>';
     }
 }
 
@@ -296,6 +302,27 @@ function renderOnlineSummary(data) {
     });
 }
 
+// 제목에서 단위 추출 (예: "1kg", "5kg", "10kg", "500g" 등)
+function extractUnitFromTitle(title) {
+    if (!title) return '';
+    // kg 단위 추출 (예: 1kg, 5kg, 10kg)
+    const kgMatch = title.match(/(\d+(?:\.\d+)?)\s*kg/i);
+    if (kgMatch) return kgMatch[1] + 'kg';
+    // g 단위 추출 (예: 500g, 1000g)
+    const gMatch = title.match(/(\d+)\s*g(?![a-z])/i);
+    if (gMatch) return gMatch[1] + 'g';
+    // 개 단위 추출 (예: 10개, 20개)
+    const countMatch = title.match(/(\d+)\s*개/);
+    if (countMatch) return countMatch[1] + '개';
+    // 포기 단위 추출 (예: 1포기, 2포기)
+    const pgiMatch = title.match(/(\d+)\s*포기/);
+    if (pgiMatch) return pgiMatch[1] + '포기';
+    // 통 단위 추출 (예: 1통)
+    const tongMatch = title.match(/(\d+)\s*통/);
+    if (tongMatch) return tongMatch[1] + '통';
+    return '';
+}
+
 function renderOnlineList(data) {
     onlineList.innerHTML = '';
     const items = data.online_detail || [];
@@ -307,6 +334,9 @@ function renderOnlineList(data) {
     }
 
     topItems.forEach((item, index) => {
+        const unit = extractUnitFromTitle(item.title);
+        const priceWithUnit = unit ? `${formatPrice(item.price)} / ${unit}` : formatPrice(item.price);
+
         const div = document.createElement('div');
         div.className = 'online-item';
         div.innerHTML = `
@@ -315,7 +345,7 @@ function renderOnlineList(data) {
                 <div class="item-title">${item.title}</div>
                 <div class="item-mall">${item.mall}</div>
             </div>
-            <div class="item-price">${formatPrice(item.price)}</div>
+            <div class="item-price">${priceWithUnit}</div>
             <a href="${item.link}" target="_blank" class="item-link"><i data-lucide="external-link" class="link-icon"></i>바로가기</a>
         `;
         onlineList.appendChild(div);
@@ -525,7 +555,232 @@ function renderEmptyRegionCards() {
 }
 
 // ============================================
-// 탭 4: 상품 검색
+// 탭 4: 물동량
+// ============================================
+async function fetchVolumeInfo() {
+    showLoading();
+    hideError();
+
+    const viewType = volumeViewSelect.value;
+
+    try {
+        const response = await fetch(`/api/volume-info?view=${viewType}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || '물동량 데이터를 가져오는 데 실패했습니다.');
+        }
+
+        renderVolumeSummary(data);
+
+        if (viewType === 'trend') {
+            volumeChartSection.style.display = 'block';
+            renderVolumeChart(data);
+            renderVolumeTrendCards(data);
+        } else {
+            volumeChartSection.style.display = 'none';
+            if (viewType === 'market') {
+                renderVolumeMarketCards(data);
+            } else {
+                renderVolumeProductCards(data);
+            }
+        }
+
+    } catch (error) {
+        showError(error.message);
+        renderEmptyVolumeCards();
+    } finally {
+        hideLoading();
+    }
+}
+
+function formatVolume(volume) {
+    if (!volume || volume === 0) return '-';
+    if (volume >= 1000000) {
+        return (volume / 1000000).toFixed(1) + '천톤';
+    } else if (volume >= 1000) {
+        return (volume / 1000).toFixed(1) + '톤';
+    }
+    return volume.toLocaleString('ko-KR') + 'kg';
+}
+
+function renderVolumeSummary(data) {
+    volumeSummary.innerHTML = '';
+    const summary = data.summary || {};
+    const viewType = data.viewType;
+
+    let items = [];
+    if (viewType === 'market') {
+        items = [
+            { label: '전체 시장', value: summary.totalMarkets || 0, unit: '개' },
+            { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+            { label: '최대 물동량', value: summary.topMarket || '-', unit: '' }
+        ];
+    } else if (viewType === 'product') {
+        items = [
+            { label: '전체 품목', value: summary.totalProducts || 0, unit: '개' },
+            { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+            { label: '최다 거래', value: summary.topProduct || '-', unit: '' }
+        ];
+    } else {
+        items = [
+            { label: '일평균', value: formatVolume(summary.averageDaily || 0), unit: '' },
+            { label: '최대', value: formatVolume(summary.maxVolume || 0), unit: '' },
+            { label: '최소', value: formatVolume(summary.minVolume || 0), unit: '' },
+            { label: '데이터', value: summary.dataPoints || 0, unit: '일' }
+        ];
+    }
+
+    items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'summary-card';
+        card.innerHTML = `
+            <div class="label">${item.label}</div>
+            <div class="value">${item.value}${item.unit}</div>
+        `;
+        volumeSummary.appendChild(card);
+    });
+
+    if (data.isDummy) {
+        const notice = document.createElement('div');
+        notice.className = 'dummy-notice';
+        notice.textContent = '참고: 현재 샘플 데이터로 표시됩니다.';
+        volumeSummary.appendChild(notice);
+    }
+}
+
+function renderVolumeMarketCards(data) {
+    volumeCards.innerHTML = '';
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        volumeCards.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
+        return;
+    }
+
+    items.forEach((item, index) => {
+        const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
+        const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
+        const isTop = index < 3;
+
+        const card = document.createElement('div');
+        card.className = 'volume-card' + (isTop ? ' top-market' : '');
+        card.innerHTML = `
+            <div class="volume-rank">${index + 1}</div>
+            <div class="volume-info">
+                <div class="volume-name">${item.market}</div>
+                <div class="volume-region">${item.region}</div>
+            </div>
+            <div class="volume-data">
+                <div class="volume-amount">${formatVolume(item.totalVolume)}</div>
+                <div class="volume-change ${changeClass}">${changeText}</div>
+            </div>
+            <div class="volume-categories">
+                <span class="cat-item veg">채소 ${formatVolume(item.categories?.vegetables || 0)}</span>
+                <span class="cat-item fruit">과일 ${formatVolume(item.categories?.fruits || 0)}</span>
+            </div>
+        `;
+        volumeCards.appendChild(card);
+    });
+}
+
+function renderVolumeProductCards(data) {
+    volumeCards.innerHTML = '';
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        volumeCards.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
+        return;
+    }
+
+    items.forEach((item, index) => {
+        const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
+        const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
+        const isTop = index < 3;
+
+        const card = document.createElement('div');
+        card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
+        card.innerHTML = `
+            <div class="volume-rank">${index + 1}</div>
+            <div class="volume-info">
+                <div class="volume-name">${item.product}</div>
+                <div class="volume-category-badge">${item.category}</div>
+            </div>
+            <div class="volume-data">
+                <div class="volume-amount">${formatVolume(item.volume)}</div>
+                <div class="volume-change ${changeClass}">${changeText}</div>
+            </div>
+        `;
+        volumeCards.appendChild(card);
+    });
+}
+
+function renderVolumeTrendCards(data) {
+    volumeCards.innerHTML = '';
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        volumeCards.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
+        return;
+    }
+
+    // 최근 7일만 카드로 표시
+    const recentItems = items.slice(-7).reverse();
+
+    recentItems.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'volume-card trend-card';
+        card.innerHTML = `
+            <div class="trend-date">
+                <div class="date-main">${item.date}</div>
+                <div class="date-day">${item.dayOfWeek}요일</div>
+            </div>
+            <div class="trend-volume">
+                <div class="total-volume">${formatVolume(item.totalVolume)}</div>
+            </div>
+            <div class="trend-breakdown">
+                <span class="cat-item veg">채소 ${formatVolume(item.vegetables)}</span>
+                <span class="cat-item fruit">과일 ${formatVolume(item.fruits)}</span>
+            </div>
+        `;
+        volumeCards.appendChild(card);
+    });
+}
+
+function renderVolumeChart(data) {
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        volumeChart.innerHTML = '<div class="chart-placeholder"><p>📊 물동량 추이 데이터가 없습니다.</p></div>';
+        return;
+    }
+
+    const maxVolume = Math.max(...items.map(i => i.totalVolume || 0));
+
+    let html = '<div class="bar-chart volume-bar-chart">';
+    items.forEach(item => {
+        const height = maxVolume > 0 ? Math.round((item.totalVolume / maxVolume) * 200) : 0;
+        html += `
+            <div class="bar-item">
+                <div class="bar-value">${formatVolume(item.totalVolume)}</div>
+                <div class="bar volume-bar" style="height: ${height}px"></div>
+                <div class="bar-label">${item.date.slice(5)} (${item.dayOfWeek})</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    volumeChart.innerHTML = html;
+}
+
+function renderEmptyVolumeCards() {
+    volumeSummary.innerHTML = '';
+    volumeCards.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
+    volumeChartSection.style.display = 'none';
+}
+
+// ============================================
+// 탭 5: 상품 검색
 // ============================================
 
 // 쿠팡 검색 페이지 열기 (최저가순 정렬)
