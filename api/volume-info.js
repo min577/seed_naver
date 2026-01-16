@@ -40,9 +40,17 @@ const SORT_CODE_MAP = {
 
 // 가락시장 반입물량(정산후) 조회 - 서울 열린데이터광장
 async function fetchGarakVolumeData(date) {
-  // 서비스명: GarakPayAfter (가락시장 정산후 반입물량)
+  // 현재 API 키가 유효하지 않으므로 바로 null 반환
+  // 실제 API를 사용하려면 Vercel 환경변수에 SEOUL_API_KEY를 설정하세요
+  const useRealApi = process.env.SEOUL_API_KEY && process.env.SEOUL_API_KEY !== '6c45424a54616c7335385850787664';
+
+  if (!useRealApi) {
+    console.log('SEOUL_API_KEY 환경변수가 설정되지 않아 더미 데이터를 사용합니다.');
+    return null;
+  }
+
   const serviceName = 'GarakPayAfter';
-  const url = `http://openAPI.seoul.go.kr:8088/${SEOUL_API_KEY}/json/${serviceName}/1/1000/`;
+  const url = `http://openAPI.seoul.go.kr:8088/${process.env.SEOUL_API_KEY}/json/${serviceName}/1/1000/`;
 
   try {
     const response = await axios.get(url, {
@@ -50,15 +58,18 @@ async function fetchGarakVolumeData(date) {
       params: date ? { P_SRCH_DATE: date } : {},
       headers: {
         'Accept': 'application/json'
-      },
-      validateStatus: function (status) {
-        return status >= 200 && status < 500;
       }
     });
 
     // 응답이 JSON인지 확인
     if (typeof response.data === 'string') {
       console.error('API 응답이 JSON이 아닙니다:', response.data.substring(0, 100));
+      return null;
+    }
+
+    // 응답에 GarakPayAfter 키가 있는지 확인
+    if (!response.data || !response.data.GarakPayAfter) {
+      console.error('API 응답 형식이 올바르지 않습니다');
       return null;
     }
 
