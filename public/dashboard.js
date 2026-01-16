@@ -983,9 +983,10 @@ function renderModalChart(data, priceType, label) {
         yTicks.push({ y, price: Math.round(price) });
     }
 
-    // 선 색상 결정
+    // 선 색상 및 출처 결정
     const lineColor = priceType === 'retail' ? '#10b981' : '#2563eb';
     const areaColor = priceType === 'retail' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(37, 99, 235, 0.15)';
+    const sourceText = priceType === 'retail' ? '출처: KAMIS (대형마트)' : '출처: KAMIS (가락시장)';
 
     const html = `
         <div class="line-chart-container modal-line-chart">
@@ -1015,7 +1016,7 @@ function renderModalChart(data, priceType, label) {
                     <text x="${p.x}" y="${chartHeight - 45}" class="x-label">${p.label}</text>
                 `).join('')}
 
-                <text x="${chartWidth - marginRight}" y="${chartHeight - 10}" class="chart-source">출처: KAMIS</text>
+                <text x="${chartWidth - marginRight}" y="${chartHeight - 10}" class="chart-source">${sourceText}</text>
             </svg>
         </div>
     `;
