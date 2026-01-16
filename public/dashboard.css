@@ -322,10 +322,7 @@ section h4 {
     opacity: 0.7;
 }
 
-/* 소매 카드 스타일 */
-.wholesale-card.retail-card {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-}
+/* 소매 카드는 별도 스타일 없음 - 도매와 동일하게 호버 시 파란색 */
 
 /* 비교 테이블 */
 .comparison-table-wrapper,
