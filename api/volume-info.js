@@ -315,8 +315,20 @@ module.exports = async (req, res) => {
     // 서울 열린데이터광장 API 호출 시도
     const apiData = await fetchGarakVolumeData(date);
 
-    // API 응답 확인
-    const hasApiData = apiData && apiData.GarakPayAfter && apiData.GarakPayAfter.RESULT?.CODE === 'INFO-000';
+    // 디버깅: API 응답 구조 로깅
+    if (apiData) {
+      console.log('API 응답 키:', Object.keys(apiData));
+      if (apiData.GarakPayAfter) {
+        console.log('GarakPayAfter 키:', Object.keys(apiData.GarakPayAfter));
+        console.log('RESULT:', JSON.stringify(apiData.GarakPayAfter.RESULT));
+        console.log('list_total_count:', apiData.GarakPayAfter.list_total_count);
+      }
+    }
+
+    // API 응답 확인 - RESULT.CODE가 INFO-000이거나 row 데이터가 있으면 성공
+    const hasApiData = apiData && apiData.GarakPayAfter &&
+      (apiData.GarakPayAfter.RESULT?.CODE === 'INFO-000' ||
+       (apiData.GarakPayAfter.row && apiData.GarakPayAfter.row.length > 0));
 
     // API 데이터가 없으면 더미 데이터 사용
     if (!hasApiData) {
