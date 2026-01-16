@@ -24,6 +24,10 @@
       "dest": "/api/region-price.js"
     },
     {
+      "src": "/api/volume-info",
+      "dest": "/api/volume-info.js"
+    },
+    {
       "src": "/api/tomato/price-compare",
       "dest": "/api/tomato-price-compare.js"
     },
