@@ -1012,10 +1012,10 @@ function renderModalChart(data, priceType, label) {
                 `).join('')}
 
                 ${points.filter((_, i) => i % 5 === 0 || i === points.length - 1).map(p => `
-                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
+                    <text x="${p.x}" y="${chartHeight - 45}" class="x-label">${p.label}</text>
                 `).join('')}
 
-                <text x="${chartWidth - marginRight}" y="${chartHeight + 15}" class="chart-source">출처: KAMIS</text>
+                <text x="${chartWidth - marginRight}" y="${chartHeight - 10}" class="chart-source">출처: KAMIS</text>
             </svg>
         </div>
     `;
