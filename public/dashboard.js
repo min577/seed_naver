@@ -424,12 +424,13 @@ function renderTrendTable(data) {
         const change = item.price - prevPrice;
         const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
         const changeText = change === 0 ? '-' : `${change > 0 ? '+' : ''}${formatPrice(change)}`;
+        const retailPriceText = item.retailPrice > 0 ? formatPrice(item.retailPrice) : '-';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.label}</td>
             <td>${formatPrice(item.price)}</td>
-            <td>${formatPrice(item.retailPrice || '-')}</td>
+            <td>${retailPriceText}</td>
             <td class="price-diff ${changeClass}">${changeText}</td>
         `;
         trendTableBody.appendChild(tr);
