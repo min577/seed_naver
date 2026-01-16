@@ -191,8 +191,23 @@ async function fetchPriceCompare() {
 function renderWholesaleCards(data) {
     wholesaleCards.innerHTML = '';
     const wholesale = data.wholesale_summary || {};
+    const retail = data.retail_summary || {};
     const isDummy = wholesale.isDummy || false;
 
+    // 소매 가격 카드
+    if (retail.price > 0) {
+        const retailCard = document.createElement('div');
+        retailCard.className = 'wholesale-card retail-card';
+        retailCard.innerHTML = `
+            <div class="card-title">소매가격</div>
+            <div class="card-grade">${productInfo[currentProduct].name}</div>
+            <div class="card-price">${formatPrice(retail.price)}</div>
+            <div class="card-unit">1kg 기준 (전국평균)</div>
+        `;
+        wholesaleCards.appendChild(retailCard);
+    }
+
+    // 도매 가격 카드 (상품, 중품)
     const cards = [
         { grade: 'high', price: wholesale.high || 0 },
         { grade: 'mid', price: wholesale.mid || 0 }
@@ -204,7 +219,7 @@ function renderWholesaleCards(data) {
         const div = document.createElement('div');
         div.className = 'wholesale-card';
         div.innerHTML = `
-            <div class="card-title">${gradeInfo[card.grade].label}</div>
+            <div class="card-title">도매 ${gradeInfo[card.grade].label}</div>
             <div class="card-grade">${productInfo[currentProduct].name}</div>
             <div class="card-price">${formatPrice(card.price)}</div>
             <div class="card-unit">1kg 기준 ${isDummy ? '(참고가격)' : '(가락시장)'}</div>
@@ -213,18 +228,19 @@ function renderWholesaleCards(data) {
     });
 
     if (wholesaleCards.children.length === 0) {
-        wholesaleCards.innerHTML = '<div class="no-data">도매시장 데이터가 없습니다.</div>';
+        wholesaleCards.innerHTML = '<div class="no-data">가격 데이터가 없습니다.</div>';
     }
 }
 
 function renderComparisonTable(data) {
     comparisonBody.innerHTML = '';
     const wholesale = data.wholesale_summary || {};
+    const retail = data.retail_summary || {};
     const online = data.online_summary || {};
 
     const rows = [
-        { grade: 'high', wholesalePrice: wholesale.high || 0, onlinePrice: online.lowest_price || 0 },
-        { grade: 'mid', wholesalePrice: wholesale.mid || 0, onlinePrice: online.lowest_price || 0 }
+        { grade: 'high', wholesalePrice: wholesale.high || 0, retailPrice: retail.price || 0, onlinePrice: online.lowest_price || 0 },
+        { grade: 'mid', wholesalePrice: wholesale.mid || 0, retailPrice: retail.price || 0, onlinePrice: online.lowest_price || 0 }
     ];
 
     rows.forEach(row => {
@@ -244,6 +260,7 @@ function renderComparisonTable(data) {
         tr.innerHTML = `
             <td><span class="grade-badge ${gradeInfo[row.grade].badge}">${gradeInfo[row.grade].label}</span></td>
             <td>${formatPrice(row.wholesalePrice)}</td>
+            <td>${formatPrice(row.retailPrice)}</td>
             <td>${formatPrice(row.onlinePrice)}</td>
             <td class="price-diff ${diffClass}">${diff >= 0 ? '+' : ''}${formatPrice(diff)}</td>
             <td><span class="margin-rate ${marginClass}">${diffPercent >= 0 ? '+' : ''}${diffPercent}%</span></td>
@@ -252,7 +269,7 @@ function renderComparisonTable(data) {
     });
 
     if (comparisonBody.children.length === 0) {
-        comparisonBody.innerHTML = '<tr><td colspan="5" class="no-data">데이터가 없습니다.</td></tr>';
+        comparisonBody.innerHTML = '<tr><td colspan="6" class="no-data">데이터가 없습니다.</td></tr>';
     }
 }
 

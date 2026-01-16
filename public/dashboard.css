@@ -321,6 +321,11 @@ section h4 {
     opacity: 0.7;
 }
 
+/* 소매 카드 스타일 */
+.wholesale-card.retail-card {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
 /* 비교 테이블 */
 .comparison-table-wrapper,
 .trend-table-wrapper,

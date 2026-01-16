@@ -146,53 +146,72 @@ function extractKgFromUnit(unit) {
   return match ? parseInt(match[1], 10) : 1;
 }
 
-// KAMIS 응답에서 가격 추출 (dailySalesList 응답 형식)
+// KAMIS 응답에서 도매/소매 가격 추출 (dailySalesList 응답 형식)
 function parseKamisPrice(data, productKey) {
   const product = PRODUCT_INFO[productKey];
   const today = new Date().toISOString().split('T')[0];
 
   if (!data || !data.price) {
-    return null;
+    return { wholesale: null, retail: null };
   }
 
   const items = data.price;
-  let latestDate = '';
 
-  // 해당 품목의 도매 가격 찾기
-  const matchedItem = items.find(item => {
+  // 해당 품목의 도매 가격 찾기 (product_cls_code: 02)
+  const wholesaleItem = items.find(item => {
     const itemName = item.item_name || item.productName || '';
     const clsCode = item.product_cls_code;
-
-    // 도매(02)이고, 품목명이 일치하고, 방울토마토는 제외
     return clsCode === '02'
       && itemName.includes(product.name)
       && !itemName.includes('방울');
   });
 
-  if (!matchedItem) {
-    return null;
+  // 해당 품목의 소매 가격 찾기 (product_cls_code: 01)
+  const retailItem = items.find(item => {
+    const itemName = item.item_name || item.productName || '';
+    const clsCode = item.product_cls_code;
+    return clsCode === '01'
+      && itemName.includes(product.name)
+      && !itemName.includes('방울');
+  });
+
+  let wholesale = null;
+  let retail = null;
+
+  // 도매 가격 처리
+  if (wholesaleItem) {
+    const rawPrice = parseInt(String(wholesaleItem.dpr1 || '0').replace(/,/g, ''), 10);
+    if (rawPrice > 0) {
+      const unit = wholesaleItem.unit || '1kg';
+      const kgAmount = extractKgFromUnit(unit);
+      const pricePerKg = Math.round(rawPrice / kgAmount);
+      wholesale = {
+        high: pricePerKg,
+        mid: Math.round(pricePerKg * 0.75),
+        date: wholesaleItem.lastest_day || today,
+        source: 'KAMIS',
+        unit: unit
+      };
+    }
   }
 
-  // 가격 추출 (dpr1 = 당일 가격)
-  const rawPrice = parseInt(String(matchedItem.dpr1 || '0').replace(/,/g, ''), 10);
-  if (rawPrice <= 0) {
-    return null;
+  // 소매 가격 처리
+  if (retailItem) {
+    const rawPrice = parseInt(String(retailItem.dpr1 || '0').replace(/,/g, ''), 10);
+    if (rawPrice > 0) {
+      const unit = retailItem.unit || '1kg';
+      const kgAmount = extractKgFromUnit(unit);
+      const pricePerKg = Math.round(rawPrice / kgAmount);
+      retail = {
+        price: pricePerKg,
+        date: retailItem.lastest_day || today,
+        source: 'KAMIS',
+        unit: unit
+      };
+    }
   }
 
-  // 단위 확인 후 1kg 기준으로 환산
-  const unit = matchedItem.unit || '1kg';
-  const kgAmount = extractKgFromUnit(unit);
-  const pricePerKg = Math.round(rawPrice / kgAmount);
-
-  latestDate = matchedItem.lastest_day || today;
-
-  // dailySalesList는 등급 구분이 없으므로 상품 가격으로 사용, 중품은 75%로 추정
-  return {
-    high: pricePerKg,
-    mid: Math.round(pricePerKg * 0.75),
-    date: latestDate,
-    source: 'KAMIS'
-  };
+  return { wholesale, retail };
 }
 
 module.exports = async (req, res) => {
@@ -220,17 +239,22 @@ module.exports = async (req, res) => {
 
     const today = new Date().toISOString().split('T')[0];
     let wholesale = { high: 0, mid: 0, date: today };
+    let retail = { price: 0, date: today };
     let kamisError = null;
 
     // KAMIS API 호출
     try {
-      const kamisData = await fetchKamisPrice(productKey);
+      const kamisData = await fetchKamisPrice();
       const parsed = parseKamisPrice(kamisData, productKey);
 
-      if (parsed && parsed.high > 0) {
-        wholesale = parsed;
+      if (parsed.wholesale && parsed.wholesale.high > 0) {
+        wholesale = parsed.wholesale;
       } else {
-        throw new Error('KAMIS에서 유효한 가격 데이터를 가져오지 못했습니다.');
+        throw new Error('KAMIS에서 유효한 도매 가격 데이터를 가져오지 못했습니다.');
+      }
+
+      if (parsed.retail && parsed.retail.price > 0) {
+        retail = parsed.retail;
       }
     } catch (kamisErr) {
       console.error('KAMIS API 오류:', kamisErr.message);
@@ -293,18 +317,21 @@ module.exports = async (req, res) => {
       productName: product.name,
       date: today,
       wholesale_summary: wholesale,
+      retail_summary: retail,
       online_summary: online,
       kamisError: kamisError,
       comparison: [
         {
           grade: '상품',
           wholesale_price: wholesale.high,
+          retail_price: retail.price,
           online_lowest: online.lowest_price,
           margin_rate: wholesale.high > 0 ? Math.round(((online.lowest_price - wholesale.high) / wholesale.high) * 100) : 0
         },
         {
           grade: '중품',
           wholesale_price: wholesale.mid,
+          retail_price: retail.price,
           online_lowest: online.lowest_price,
           margin_rate: wholesale.mid > 0 ? Math.round(((online.lowest_price - wholesale.mid) / wholesale.mid) * 100) : 0
         }
