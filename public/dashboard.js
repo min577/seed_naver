@@ -305,21 +305,21 @@ function renderOnlineSummary(data) {
 // 제목에서 단위 추출 (예: "1kg", "5kg", "10kg", "500g" 등)
 function extractUnitFromTitle(title) {
     if (!title) return '';
-    // kg 단위 추출 (예: 1kg, 5kg, 10kg)
+    // kg 단위 추출 (예: 1kg, 5kg, 10kg) → 'kg'만 반환
     const kgMatch = title.match(/(\d+(?:\.\d+)?)\s*kg/i);
-    if (kgMatch) return kgMatch[1] + 'kg';
-    // g 단위 추출 (예: 500g, 1000g)
+    if (kgMatch) return 'kg';
+    // g 단위 추출 (예: 500g, 1000g) → 'g'만 반환
     const gMatch = title.match(/(\d+)\s*g(?![a-z])/i);
-    if (gMatch) return gMatch[1] + 'g';
-    // 개 단위 추출 (예: 10개, 20개)
+    if (gMatch) return 'g';
+    // 개 단위 추출 (예: 10개, 20개) → '개'만 반환
     const countMatch = title.match(/(\d+)\s*개/);
-    if (countMatch) return countMatch[1] + '개';
-    // 포기 단위 추출 (예: 1포기, 2포기)
+    if (countMatch) return '개';
+    // 포기 단위 추출 (예: 1포기, 2포기) → '포기'만 반환
     const pgiMatch = title.match(/(\d+)\s*포기/);
-    if (pgiMatch) return pgiMatch[1] + '포기';
-    // 통 단위 추출 (예: 1통)
+    if (pgiMatch) return '포기';
+    // 통 단위 추출 (예: 1통) → '통'만 반환
     const tongMatch = title.match(/(\d+)\s*통/);
-    if (tongMatch) return tongMatch[1] + '통';
+    if (tongMatch) return '통';
     return '';
 }
 
