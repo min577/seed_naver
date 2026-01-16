@@ -117,34 +117,10 @@ const PRODUCT_INFO = {
   }
 };
 
-// 날짜 포맷 함수 (YYYY-MM-DD)
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-// KAMIS에서 농산물 도매가격 조회 (periodProductList API 사용)
+// KAMIS에서 농산물 도매가격 조회 (dailySalesList API 사용 - 가장 안정적)
 async function fetchKamisPrice(productKey) {
-  const product = PRODUCT_INFO[productKey];
-  if (!product) return null;
-
-  const today = new Date();
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
   const params = {
-    action: 'periodProductList',
-    p_productclscode: '02',  // 도매
-    p_categorycode: product.categoryCode,
-    p_itemcode: product.itemCode,
-    p_kindcode: '',
-    p_productrankcode: '',
-    p_countrycode: '',
-    p_startday: formatDate(weekAgo),
-    p_endday: formatDate(today),
-    p_convert_kg_yn: 'Y',
+    action: 'dailySalesList',
     p_cert_key: KAMIS_API_KEY,
     p_cert_id: KAMIS_CERT_ID,
     p_returntype: 'json'
@@ -163,75 +139,60 @@ async function fetchKamisPrice(productKey) {
   return response.data;
 }
 
-// KAMIS 응답에서 가격 추출 (periodProductList 응답 형식)
+// 단위에서 kg 수량 추출 (예: "5kg" -> 5, "1kg" -> 1, "10kg" -> 10)
+function extractKgFromUnit(unit) {
+  if (!unit) return 1;
+  const match = unit.match(/(\d+)\s*kg/i);
+  return match ? parseInt(match[1], 10) : 1;
+}
+
+// KAMIS 응답에서 가격 추출 (dailySalesList 응답 형식)
 function parseKamisPrice(data, productKey) {
   const product = PRODUCT_INFO[productKey];
   const today = new Date().toISOString().split('T')[0];
 
-  if (!data || !data.data || !data.data.item) {
+  if (!data || !data.price) {
     return null;
   }
 
-  const items = Array.isArray(data.data.item) ? data.data.item : [data.data.item];
-
-  let highPrice = 0;
-  let midPrice = 0;
+  const items = data.price;
   let latestDate = '';
 
-  // 가장 최근 날짜의 데이터 찾기
-  items.forEach(item => {
-    const itemName = item.itemname || item.item_name || '';
-    const kindName = item.kindname || item.kind_name || '';
-    const rank = item.rank || item.productrankname || '';
-    const regday = item.regday || item.yyyy || '';
+  // 해당 품목의 도매 가격 찾기
+  const matchedItem = items.find(item => {
+    const itemName = item.item_name || item.productName || '';
+    const clsCode = item.product_cls_code;
 
-    // 가격 필드: price 또는 dpr1
-    let price = 0;
-    if (item.price) {
-      price = parseInt(String(item.price).replace(/,/g, ''), 10);
-    } else if (item.dpr1) {
-      price = parseInt(String(item.dpr1).replace(/,/g, ''), 10);
-    }
-
-    // 품목명이 일치하는지 확인 (방울토마토는 제외)
-    const isMatch = (itemName.includes(product.name) || kindName.includes(product.name))
+    // 도매(02)이고, 품목명이 일치하고, 방울토마토는 제외
+    return clsCode === '02'
+      && itemName.includes(product.name)
       && !itemName.includes('방울');
-
-    if (isMatch && price > 0) {
-      // 가장 최근 날짜 데이터 우선
-      if (regday >= latestDate) {
-        latestDate = regday;
-
-        // rank 필드로 등급 판단 (상품/중품)
-        if (rank === '상품' || rank === '상' || rank.includes('상') || rank.includes('특') || rank.includes('1등')) {
-          if (price > highPrice) highPrice = price;
-        } else if (rank === '중품' || rank === '중' || rank.includes('중')) {
-          if (price > midPrice) midPrice = price;
-        } else {
-          // 등급 정보가 없으면 상품으로 간주
-          if (price > highPrice) highPrice = price;
-        }
-      }
-    }
   });
 
-  if (highPrice === 0 && midPrice > 0) {
-    highPrice = Math.round(midPrice * 1.3);
-  }
-  if (midPrice === 0 && highPrice > 0) {
-    midPrice = Math.round(highPrice * 0.75);
+  if (!matchedItem) {
+    return null;
   }
 
-  if (highPrice > 0 || midPrice > 0) {
-    return {
-      high: highPrice,
-      mid: midPrice,
-      date: latestDate || today,
-      source: 'KAMIS'
-    };
+  // 가격 추출 (dpr1 = 당일 가격)
+  const rawPrice = parseInt(String(matchedItem.dpr1 || '0').replace(/,/g, ''), 10);
+  if (rawPrice <= 0) {
+    return null;
   }
 
-  return null;
+  // 단위 확인 후 1kg 기준으로 환산
+  const unit = matchedItem.unit || '1kg';
+  const kgAmount = extractKgFromUnit(unit);
+  const pricePerKg = Math.round(rawPrice / kgAmount);
+
+  latestDate = matchedItem.lastest_day || today;
+
+  // dailySalesList는 등급 구분이 없으므로 상품 가격으로 사용, 중품은 75%로 추정
+  return {
+    high: pricePerKg,
+    mid: Math.round(pricePerKg * 0.75),
+    date: latestDate,
+    source: 'KAMIS'
+  };
 }
 
 module.exports = async (req, res) => {
