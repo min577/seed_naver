@@ -163,9 +163,8 @@ async function fetchPriceCompare() {
     hideError();
 
     try {
-        // n8n 웹훅 API 호출
-        const apiUrl = getApiUrl(API_ENDPOINTS.priceCompare);
-        const response = await fetch(`${apiUrl}?product=${currentProduct}`);
+        // Vercel API 호출 (KAMIS + 네이버 쇼핑)
+        const response = await fetch(`/api/product-price-compare?product=${currentProduct}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
@@ -178,22 +177,12 @@ async function fetchPriceCompare() {
         renderOnlineList(data);
         updateLastUpdate(data.date);
 
+        if (data.kamisError) {
+            showError(data.kamisError);
+        }
+
     } catch (error) {
         showError(error.message);
-        // 실패 시 기존 Vercel API로 폴백
-        try {
-            const fallbackResponse = await fetch(`/api/product-price-compare?product=${currentProduct}`);
-            const fallbackData = await fallbackResponse.json();
-            if (fallbackData.success) {
-                renderWholesaleCards(fallbackData);
-                renderComparisonTable(fallbackData);
-                renderOnlineSummary(fallbackData);
-                renderOnlineList(fallbackData);
-                updateLastUpdate(fallbackData.date);
-            }
-        } catch (fallbackError) {
-            console.error('Fallback API도 실패:', fallbackError);
-        }
     } finally {
         hideLoading();
     }
@@ -202,17 +191,12 @@ async function fetchPriceCompare() {
 function renderWholesaleCards(data) {
     wholesaleCards.innerHTML = '';
     const wholesale = data.wholesale_summary || {};
+    const isDummy = wholesale.isDummy || false;
 
-    // n8n API 응답: { high, mid, cherry }
     const cards = [
-        { grade: 'high', label: '상품', price: wholesale.high || 0 },
-        { grade: 'mid', label: '중품', price: wholesale.mid || 0 }
+        { grade: 'high', price: wholesale.high || 0 },
+        { grade: 'mid', price: wholesale.mid || 0 }
     ];
-
-    // 체리 토마토가 있으면 추가
-    if (wholesale.cherry) {
-        cards.push({ grade: 'cherry', label: '방울토마토', price: wholesale.cherry });
-    }
 
     cards.forEach(card => {
         if (card.price === 0) return;
@@ -220,10 +204,10 @@ function renderWholesaleCards(data) {
         const div = document.createElement('div');
         div.className = 'wholesale-card';
         div.innerHTML = `
-            <div class="card-title">${card.label}</div>
+            <div class="card-title">${gradeInfo[card.grade].label}</div>
             <div class="card-grade">${productInfo[currentProduct].name}</div>
             <div class="card-price">${formatPrice(card.price)}</div>
-            <div class="card-unit">1kg 기준 (가락시장)</div>
+            <div class="card-unit">1kg 기준 ${isDummy ? '(참고가격)' : '(가락시장)'}</div>
         `;
         wholesaleCards.appendChild(div);
     });
@@ -235,35 +219,21 @@ function renderWholesaleCards(data) {
 
 function renderComparisonTable(data) {
     comparisonBody.innerHTML = '';
-
-    // n8n API 응답: comparison 배열 사용
-    const comparison = data.comparison || [];
     const wholesale = data.wholesale_summary || {};
     const online = data.online_summary || {};
 
-    // comparison 배열이 있으면 사용, 없으면 기존 방식
-    let rows = [];
-    if (comparison.length > 0) {
-        rows = comparison.map(item => ({
-            grade: item.grade,
-            wholesalePrice: item.wholesale_price || 0,
-            onlinePrice: item.online_lowest || 0,
-            marginRate: item.margin_rate || 0
-        }));
-    } else {
-        rows = [
-            { grade: '상품', wholesalePrice: wholesale.high || 0, onlinePrice: online.lowest_price || 0 },
-            { grade: '중품', wholesalePrice: wholesale.mid || 0, onlinePrice: online.lowest_price || 0 }
-        ];
-    }
+    const rows = [
+        { grade: 'high', wholesalePrice: wholesale.high || 0, onlinePrice: online.lowest_price || 0 },
+        { grade: 'mid', wholesalePrice: wholesale.mid || 0, onlinePrice: online.lowest_price || 0 }
+    ];
 
     rows.forEach(row => {
         if (row.wholesalePrice === 0 && row.onlinePrice === 0) return;
 
         const diff = row.onlinePrice - row.wholesalePrice;
-        const diffPercent = row.marginRate || (row.wholesalePrice > 0
+        const diffPercent = row.wholesalePrice > 0
             ? Math.round((diff / row.wholesalePrice) * 100)
-            : 0);
+            : 0;
 
         const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : '';
         const marginClass = diffPercent >= 50 ? 'margin-high'
@@ -272,7 +242,7 @@ function renderComparisonTable(data) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><span class="grade-badge grade-high">${row.grade}</span></td>
+            <td><span class="grade-badge ${gradeInfo[row.grade].badge}">${gradeInfo[row.grade].label}</span></td>
             <td>${formatPrice(row.wholesalePrice)}</td>
             <td>${formatPrice(row.onlinePrice)}</td>
             <td class="price-diff ${diffClass}">${diff >= 0 ? '+' : ''}${formatPrice(diff)}</td>
@@ -353,9 +323,8 @@ async function fetchPriceTrend() {
     const period = periodSelect.value;
 
     try {
-        // n8n 웹훅 API 호출
-        const apiUrl = getApiUrl(API_ENDPOINTS.priceHistory);
-        const response = await fetch(`${apiUrl}?product=${product}&period=${period}`);
+        // Vercel API 호출
+        const response = await fetch(`/api/price-trend?product=${product}&period=${period}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
@@ -367,48 +336,31 @@ async function fetchPriceTrend() {
 
     } catch (error) {
         showError(error.message);
-        // 실패 시 기존 API로 폴백
-        try {
-            const fallbackResponse = await fetch(`/api/price-trend?product=${product}&period=${period}`);
-            const fallbackData = await fallbackResponse.json();
-            if (fallbackData.success) {
-                renderPriceChart(fallbackData);
-                renderTrendTable(fallbackData);
-            } else {
-                renderEmptyChart();
-                renderEmptyTrendTable();
-            }
-        } catch (fallbackError) {
-            renderEmptyChart();
-            renderEmptyTrendTable();
-        }
+        renderEmptyChart();
+        renderEmptyTrendTable();
     } finally {
         hideLoading();
     }
 }
 
 function renderPriceChart(data) {
-    // n8n API 응답: data 배열 사용 (기존: items)
-    const items = data.data || data.items || [];
+    const items = data.items || [];
 
     if (items.length === 0) {
         renderEmptyChart();
         return;
     }
 
-    // n8n 응답: { date, high, mid, cherry }
-    const maxPrice = Math.max(...items.map(i => i.high || i.price || 0));
+    const maxPrice = Math.max(...items.map(i => i.price || 0));
 
     let html = '<div class="bar-chart">';
     items.slice(-15).forEach(item => {
-        const price = item.high || item.price || 0;
-        const height = maxPrice > 0 ? Math.round((price / maxPrice) * 250) : 0;
-        const label = item.date ? item.date.slice(5) : item.label; // MM-DD 형식
+        const height = maxPrice > 0 ? Math.round((item.price / maxPrice) * 250) : 0;
         html += `
             <div class="bar-item">
-                <div class="bar-value">${formatPrice(price)}</div>
+                <div class="bar-value">${formatPrice(item.price)}</div>
                 <div class="bar" style="height: ${height}px"></div>
-                <div class="bar-label">${label}</div>
+                <div class="bar-label">${item.label}</div>
             </div>
         `;
     });
@@ -427,9 +379,7 @@ function renderEmptyChart() {
 }
 
 function renderTrendTable(data) {
-    // n8n API 응답: data 배열 사용 (기존: items)
-    const items = data.data || data.items || [];
-    const stats = data.stats || {};
+    const items = data.items || [];
     const period = periodSelect.value;
 
     let dateLabel = '날짜';
@@ -439,8 +389,8 @@ function renderTrendTable(data) {
     trendTableHead.innerHTML = `
         <tr>
             <th>${dateLabel}</th>
-            <th>상품</th>
-            <th>중품</th>
+            <th>도매가격</th>
+            <th>소매가격</th>
             <th>전기 대비</th>
         </tr>
     `;
@@ -453,40 +403,20 @@ function renderTrendTable(data) {
     }
 
     items.forEach((item, index) => {
-        // n8n 응답: { date, high, mid, cherry }
-        const highPrice = item.high || item.price || 0;
-        const midPrice = item.mid || 0;
-        const prevHighPrice = index > 0 ? (items[index - 1].high || items[index - 1].price || 0) : highPrice;
-        const change = highPrice - prevHighPrice;
+        const prevPrice = index > 0 ? items[index - 1].price : item.price;
+        const change = item.price - prevPrice;
         const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
         const changeText = change === 0 ? '-' : `${change > 0 ? '+' : ''}${formatPrice(change)}`;
-        const label = item.date || item.label;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${label}</td>
-            <td>${formatPrice(highPrice)}</td>
-            <td>${formatPrice(midPrice)}</td>
+            <td>${item.label}</td>
+            <td>${formatPrice(item.price)}</td>
+            <td>${formatPrice(item.retailPrice || '-')}</td>
             <td class="price-diff ${changeClass}">${changeText}</td>
         `;
         trendTableBody.appendChild(tr);
     });
-
-    // 통계 정보가 있으면 요약 행 추가
-    if (stats.high) {
-        const summaryTr = document.createElement('tr');
-        summaryTr.style.fontWeight = '700';
-        summaryTr.style.background = '#f5f5f5';
-        const totalChange = stats.high.change || 0;
-        const changeClass = totalChange > 0 ? 'positive' : totalChange < 0 ? 'negative' : '';
-        summaryTr.innerHTML = `
-            <td>평균</td>
-            <td>${formatPrice(stats.high.avg || 0)}</td>
-            <td>${formatPrice(stats.mid?.avg || 0)}</td>
-            <td class="price-diff ${changeClass}">${totalChange > 0 ? '+' : ''}${formatPrice(totalChange)}</td>
-        `;
-        trendTableBody.appendChild(summaryTr);
-    }
 }
 
 function renderEmptyTrendTable() {
