@@ -289,13 +289,14 @@ section h4 {
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .wholesale-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 .wholesale-card .card-title {

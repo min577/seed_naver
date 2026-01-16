@@ -73,18 +73,20 @@ async function fetchDailyTrend(productKey) {
   }
 }
 
-// 월별 가격 추이 조회 (API 3번: 월별 도.소매가격정보)
+// 월별 가격 추이 조회 (API 3번: 월별 도.소매가격정보) - 도매와 소매 동시 조회
 async function fetchMonthlyTrend(productKey) {
   const product = PRODUCT_CODES[productKey];
   if (!product) return null;
 
   const today = new Date();
   const year = today.getFullYear();
+  const url = 'https://www.kamis.or.kr/service/price/xml.do';
 
-  const params = {
+  // 도매(02)와 소매(01) 동시 조회
+  const baseParams = {
     action: 'monthlyPriceTrendList',
     p_yyyy: year.toString(),
-    p_period: '3', // 최근 3년
+    p_period: '3',
     p_itemcategorycode: product.categoryCode,
     p_itemcode: product.itemCode,
     p_kindcode: product.kindCode,
@@ -96,30 +98,35 @@ async function fetchMonthlyTrend(productKey) {
     p_returntype: 'json'
   };
 
-  const url = 'https://www.kamis.or.kr/service/price/xml.do';
-
   try {
-    const response = await axios.get(url, {
-      params,
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    const [wholesaleRes, retailRes] = await Promise.all([
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '02' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      }),
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '01' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      })
+    ]);
 
-    return response.data;
+    return { wholesale: wholesaleRes.data, retail: retailRes.data };
   } catch (error) {
     console.error('KAMIS 월별 추이 조회 오류:', error.message);
     return null;
   }
 }
 
-// 연도별 가격 추이 조회 (API 4번: 연도별 도.소매가격정보)
+// 연도별 가격 추이 조회 (API 4번: 연도별 도.소매가격정보) - 도매와 소매 동시 조회
 async function fetchYearlyTrend(productKey) {
   const product = PRODUCT_CODES[productKey];
   if (!product) return null;
 
-  const params = {
+  const url = 'https://www.kamis.or.kr/service/price/xml.do';
+
+  const baseParams = {
     action: 'yearlyPriceTrendList',
     p_itemcategorycode: product.categoryCode,
     p_itemcode: product.itemCode,
@@ -132,26 +139,29 @@ async function fetchYearlyTrend(productKey) {
     p_returntype: 'json'
   };
 
-  const url = 'https://www.kamis.or.kr/service/price/xml.do';
-
   try {
-    const response = await axios.get(url, {
-      params,
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    const [wholesaleRes, retailRes] = await Promise.all([
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '02' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      }),
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '01' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      })
+    ]);
 
-    return response.data;
+    return { wholesale: wholesaleRes.data, retail: retailRes.data };
   } catch (error) {
     console.error('KAMIS 연도별 추이 조회 오류:', error.message);
     return null;
   }
 }
 
-// 응답 데이터 파싱
-function parseTrendData(data, period) {
+// 단일 데이터 소스 파싱 (도매 또는 소매)
+function parseSingleSource(data, period) {
   if (!data || !data.data || !data.data.item) {
     return [];
   }
@@ -167,13 +177,13 @@ function parseTrendData(data, period) {
         result.push({
           label: item.regday,
           price: price,
-          retailPrice: 0
+          year: null,
+          month: null
         });
       }
     }
     // 월별/연도별 데이터
     else if (item.yyyy) {
-      // 월별 데이터 파싱
       for (let m = 1; m <= 12; m++) {
         const monthKey = `m${m}`;
         const priceStr = item[monthKey];
@@ -181,9 +191,8 @@ function parseTrendData(data, period) {
           const price = parseInt(priceStr.replace(/,/g, ''), 10);
           if (price > 0) {
             result.push({
-              label: period === 'yearly' ? item.yyyy : `${item.yyyy}.${String(m).padStart(2, '0')}`,
+              label: `${item.yyyy}.${String(m).padStart(2, '0')}`,
               price: price,
-              retailPrice: 0,
               year: item.yyyy,
               month: m
             });
@@ -193,14 +202,42 @@ function parseTrendData(data, period) {
     }
   });
 
+  return result;
+}
+
+// 응답 데이터 파싱 (도매 + 소매 병합)
+function parseTrendData(data, period) {
+  // 일별은 단일 소스
+  if (period === 'daily') {
+    const result = parseSingleSource(data, period);
+    return result.map(item => ({ ...item, retailPrice: 0 }));
+  }
+
+  // 월별/연도별은 도매+소매 병합
+  const wholesaleData = data?.wholesale ? parseSingleSource(data.wholesale, period) : [];
+  const retailData = data?.retail ? parseSingleSource(data.retail, period) : [];
+
+  // 소매 데이터를 라벨 기준으로 맵핑
+  const retailMap = {};
+  retailData.forEach(item => {
+    retailMap[item.label] = item.price;
+  });
+
+  // 도매 데이터에 소매 가격 병합
+  let result = wholesaleData.map(item => ({
+    ...item,
+    retailPrice: retailMap[item.label] || 0
+  }));
+
   // 연도별인 경우 연평균으로 집계
   if (period === 'yearly') {
     const yearlyAvg = {};
     result.forEach(item => {
       if (!yearlyAvg[item.year]) {
-        yearlyAvg[item.year] = { sum: 0, count: 0 };
+        yearlyAvg[item.year] = { wholesaleSum: 0, retailSum: 0, count: 0 };
       }
-      yearlyAvg[item.year].sum += item.price;
+      yearlyAvg[item.year].wholesaleSum += item.price;
+      yearlyAvg[item.year].retailSum += item.retailPrice;
       yearlyAvg[item.year].count++;
     });
 
@@ -209,8 +246,10 @@ function parseTrendData(data, period) {
       .slice(-5)
       .map(year => ({
         label: year + '년',
-        price: Math.round(yearlyAvg[year].sum / yearlyAvg[year].count),
-        retailPrice: 0
+        price: Math.round(yearlyAvg[year].wholesaleSum / yearlyAvg[year].count),
+        retailPrice: yearlyAvg[year].retailSum > 0
+          ? Math.round(yearlyAvg[year].retailSum / yearlyAvg[year].count)
+          : 0
       }));
   }
 
