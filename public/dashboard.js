@@ -681,14 +681,25 @@ function renderVolumeSummary(data) {
     volumeSummary.innerHTML = '';
     const summary = data.summary || {};
     const viewType = data.viewType;
+    const isApiData = !data.isDummy;
 
     let items = [];
     if (viewType === 'market') {
-        items = [
-            { label: '전체 시장', value: summary.totalMarkets || 0, unit: '개' },
-            { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
-            { label: '최대 물동량', value: summary.topMarket || '-', unit: '' }
-        ];
+        if (isApiData && summary.categories !== undefined) {
+            // 실제 API 데이터: 카테고리별 요약
+            items = [
+                { label: '카테고리', value: summary.categories || 0, unit: '개' },
+                { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+                { label: '데이터 출처', value: '가락시장', unit: '' }
+            ];
+        } else {
+            // 더미 데이터: 시장별 요약
+            items = [
+                { label: '전체 시장', value: summary.totalMarkets || 0, unit: '개' },
+                { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+                { label: '최대 물동량', value: summary.topMarket || '-', unit: '' }
+            ];
+        }
     } else if (viewType === 'product') {
         items = [
             { label: '전체 품목', value: summary.totalProducts || 0, unit: '개' },
@@ -731,30 +742,95 @@ function renderVolumeMarketCards(data) {
         return;
     }
 
-    items.forEach((item, index) => {
-        const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
-        const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
-        const isTop = index < 3;
+    // API 데이터인지 더미 데이터인지 확인 (카테고리 데이터 vs 시장 데이터)
+    const isApiCategoryData = items[0] && items[0].category && !items[0].market;
 
-        const card = document.createElement('div');
-        card.className = 'volume-card' + (isTop ? ' top-market' : '');
-        card.innerHTML = `
-            <div class="volume-rank">${index + 1}</div>
-            <div class="volume-info">
-                <div class="volume-name">${item.market}</div>
-                <div class="volume-region">${item.region}</div>
-            </div>
-            <div class="volume-data">
-                <div class="volume-amount">${formatVolume(item.totalVolume)}</div>
-                <div class="volume-change ${changeClass}">${changeText}</div>
-            </div>
-            <div class="volume-categories">
-                <span class="cat-item veg">채소 ${formatVolume(item.categories?.vegetables || 0)}</span>
-                <span class="cat-item fruit">과일 ${formatVolume(item.categories?.fruits || 0)}</span>
-            </div>
-        `;
-        volumeCards.appendChild(card);
-    });
+    if (isApiCategoryData) {
+        // 실제 API 데이터: 카테고리별 물동량 (가락시장)
+        items.forEach((item, index) => {
+            const isTop = index < 3;
+            const categoryEmoji = getCategoryEmoji(item.categoryKey || item.category);
+
+            const card = document.createElement('div');
+            card.className = 'volume-card category-card' + (isTop ? ' top-category' : '');
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${categoryEmoji} ${item.category}</div>
+                    <div class="volume-region">가락시장</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.volume)}</div>
+                </div>
+                <div class="volume-corporations">
+                    ${renderCorporations(item.corporations)}
+                </div>
+            `;
+            volumeCards.appendChild(card);
+        });
+    } else {
+        // 더미 데이터: 시장별 물동량
+        items.forEach((item, index) => {
+            const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
+            const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
+            const isTop = index < 3;
+
+            const card = document.createElement('div');
+            card.className = 'volume-card' + (isTop ? ' top-market' : '');
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${item.market}</div>
+                    <div class="volume-region">${item.region}</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.totalVolume)}</div>
+                    <div class="volume-change ${changeClass}">${changeText}</div>
+                </div>
+                <div class="volume-categories">
+                    <span class="cat-item veg">채소 ${formatVolume(item.categories?.vegetables || 0)}</span>
+                    <span class="cat-item fruit">과일 ${formatVolume(item.categories?.fruits || 0)}</span>
+                </div>
+            `;
+            volumeCards.appendChild(card);
+        });
+    }
+}
+
+// 카테고리별 이모지 반환
+function getCategoryEmoji(categoryKey) {
+    const emojis = {
+        fruits: '🍎',
+        fruitVegetables: '🍅',
+        vegetables: '🥬',
+        total: '📦'
+    };
+    return emojis[categoryKey] || '📦';
+}
+
+// 도매법인별 물동량 렌더링
+function renderCorporations(corporations) {
+    if (!corporations) return '';
+
+    const corpNames = {
+        seoul: '서울청과',
+        nonghyup: '농협',
+        jungang: '중앙청과',
+        donghwa: '동화청과',
+        hankook: '한국청과',
+        daea: '대아청과'
+    };
+
+    const sortedCorps = Object.entries(corporations)
+        .filter(([key, value]) => value > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    if (sortedCorps.length === 0) return '';
+
+    return sortedCorps.map(([key, value]) =>
+        `<span class="corp-item">${corpNames[key] || key}: ${formatVolume(value)}</span>`
+    ).join('');
 }
 
 function renderVolumeProductCards(data) {

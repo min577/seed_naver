@@ -1217,6 +1217,37 @@ section h4 {
     color: #e65100;
 }
 
+/* 카테고리 카드 (API 데이터) */
+.volume-card.category-card {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+}
+
+.volume-card.top-category {
+    border-left: 4px solid #1a1a1a;
+    background: #fafafa;
+}
+
+.volume-corporations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+    max-width: 280px;
+}
+
+.corp-item {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1565c0;
+    white-space: nowrap;
+}
+
 /* 추이 카드 */
 .volume-card.trend-card {
     display: grid;
