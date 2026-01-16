@@ -1011,7 +1011,7 @@ function renderModalChart(data, priceType, label) {
                     </g>
                 `).join('')}
 
-                ${points.map(p => `
+                ${points.filter((_, i) => i % 5 === 0 || i === points.length - 1).map(p => `
                     <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
                 `).join('')}
 
