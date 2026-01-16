@@ -410,9 +410,9 @@ function renderPriceChart(data) {
     const padding = priceRange * 0.1;
 
     const chartWidth = 800;
-    const chartHeight = 250;
+    const chartHeight = 300;
     const marginTop = 30;
-    const marginBottom = 40;
+    const marginBottom = 60;
     const marginLeft = 60;
     const marginRight = 20;
     const graphWidth = chartWidth - marginLeft - marginRight;
@@ -458,14 +458,20 @@ function renderPriceChart(data) {
                 <!-- 선 그래프 -->
                 <path d="${linePath}" class="chart-line" />
 
-                <!-- 데이터 포인트 -->
-                ${points.map((p, i) => `
-                    <circle cx="${p.x}" cy="${p.y}" r="5" class="chart-point" />
+                <!-- 데이터 포인트 및 툴팁 -->
+                ${points.map(p => `
+                    <g class="chart-point-group">
+                        <circle cx="${p.x}" cy="${p.y}" r="5" class="chart-point" />
+                        <g class="chart-tooltip" transform="translate(${p.x}, ${p.y - 15})">
+                            <rect x="-40" y="-22" width="80" height="24" rx="4" class="tooltip-bg" />
+                            <text x="0" y="-6" class="tooltip-text">${formatPrice(p.price)}</text>
+                        </g>
+                    </g>
                 `).join('')}
 
-                <!-- X축 레이블 -->
-                ${points.filter((_, i) => displayItems.length <= 7 || i % Math.ceil(displayItems.length / 7) === 0 || i === displayItems.length - 1).map(p => `
-                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
+                <!-- X축 레이블 (모든 날짜 표시, 기울임) -->
+                ${points.map(p => `
+                    <text x="${p.x}" y="${chartHeight - 5}" class="x-label" transform="rotate(-45, ${p.x}, ${chartHeight - 5})">${p.label}</text>
                 `).join('')}
             </svg>
         </div>
