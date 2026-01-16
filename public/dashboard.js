@@ -536,11 +536,11 @@ function renderRegionCards(data) {
             <div class="region-name">${item.region}</div>
             <div class="region-prices">
                 <div class="price-row">
-                    <span class="price-label">소매</span>
+                    <span class="price-label">소매 <span class="price-source">(대형마트)</span></span>
                     <span class="price-value">${formatPrice(item.retailPrice)}</span>
                 </div>
                 <div class="price-row wholesale">
-                    <span class="price-label">도매</span>
+                    <span class="price-label">도매 <span class="price-source">(공영도매시장)</span></span>
                     <span class="price-value">${formatPrice(item.wholesalePrice)}</span>
                 </div>
             </div>

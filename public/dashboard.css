@@ -708,6 +708,12 @@ section h4 {
     font-weight: 600;
 }
 
+.region-card .price-source {
+    font-size: 10px;
+    color: #999;
+    font-weight: 400;
+}
+
 .region-card .price-value {
     font-size: 15px;
     font-weight: 700;
