@@ -40,11 +40,10 @@ const SORT_CODE_MAP = {
 
 // 가락시장 반입물량(정산후) 조회 - 서울 열린데이터광장
 async function fetchGarakVolumeData(date) {
-  // 현재 API 키가 유효하지 않으므로 바로 null 반환
-  // 실제 API를 사용하려면 Vercel 환경변수에 SEOUL_API_KEY를 설정하세요
-  const useRealApi = process.env.SEOUL_API_KEY && process.env.SEOUL_API_KEY !== '6c45424a54616c7335385850787664';
+  // Vercel 환경변수에서 API 키 확인
+  const apiKey = process.env.SEOUL_API_KEY;
 
-  if (!useRealApi) {
+  if (!apiKey) {
     console.log('SEOUL_API_KEY 환경변수가 설정되지 않아 더미 데이터를 사용합니다.');
     return null;
   }
