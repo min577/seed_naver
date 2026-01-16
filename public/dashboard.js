@@ -407,7 +407,6 @@ function renderTrendTable(data) {
         <tr>
             <th>${dateLabel}</th>
             <th>도매가격</th>
-            <th>소매가격</th>
             <th>전기 대비</th>
         </tr>
     `;
@@ -415,7 +414,7 @@ function renderTrendTable(data) {
     trendTableBody.innerHTML = '';
 
     if (items.length === 0) {
-        trendTableBody.innerHTML = '<tr><td colspan="4" class="no-data">데이터가 없습니다.</td></tr>';
+        trendTableBody.innerHTML = '<tr><td colspan="3" class="no-data">데이터가 없습니다.</td></tr>';
         return;
     }
 
@@ -424,13 +423,11 @@ function renderTrendTable(data) {
         const change = item.price - prevPrice;
         const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
         const changeText = change === 0 ? '-' : `${change > 0 ? '+' : ''}${formatPrice(change)}`;
-        const retailPriceText = item.retailPrice > 0 ? formatPrice(item.retailPrice) : '-';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.label}</td>
             <td>${formatPrice(item.price)}</td>
-            <td>${retailPriceText}</td>
             <td class="price-diff ${changeClass}">${changeText}</td>
         `;
         trendTableBody.appendChild(tr);
@@ -442,11 +439,10 @@ function renderEmptyTrendTable() {
         <tr>
             <th>날짜</th>
             <th>도매가격</th>
-            <th>소매가격</th>
             <th>전기 대비</th>
         </tr>
     `;
-    trendTableBody.innerHTML = '<tr><td colspan="4" class="no-data">데이터가 없습니다.</td></tr>';
+    trendTableBody.innerHTML = '<tr><td colspan="3" class="no-data">데이터가 없습니다.</td></tr>';
 }
 
 // ============================================
