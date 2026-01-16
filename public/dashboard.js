@@ -959,9 +959,9 @@ function renderModalChart(data, priceType, label) {
     const padding = priceRange * 0.1;
 
     const chartWidth = 750;
-    const chartHeight = 280;
+    const chartHeight = 300;
     const marginTop = 30;
-    const marginBottom = 50;
+    const marginBottom = 70;
     const marginLeft = 60;
     const marginRight = 20;
     const graphWidth = chartWidth - marginLeft - marginRight;
@@ -1015,7 +1015,7 @@ function renderModalChart(data, priceType, label) {
                     <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
                 `).join('')}
 
-                <text x="${chartWidth - marginRight}" y="${chartHeight - 5}" class="chart-source">출처: KAMIS</text>
+                <text x="${chartWidth - marginRight}" y="${chartHeight + 15}" class="chart-source">출처: KAMIS</text>
             </svg>
         </div>
     `;
