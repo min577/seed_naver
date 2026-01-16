@@ -642,9 +642,9 @@ section h4 {
 }
 
 .line-chart .x-label {
-    font-size: 10px;
+    font-size: 9px;
     fill: #666;
-    text-anchor: end;
+    text-anchor: middle;
 }
 
 .line-chart .y-label {

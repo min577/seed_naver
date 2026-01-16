@@ -469,9 +469,9 @@ function renderPriceChart(data) {
                     </g>
                 `).join('')}
 
-                <!-- X축 레이블 (모든 날짜 표시, 기울임) -->
+                <!-- X축 레이블 -->
                 ${points.map(p => `
-                    <text x="${p.x}" y="${chartHeight - 5}" class="x-label" transform="rotate(-45, ${p.x}, ${chartHeight - 5})">${p.label}</text>
+                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
                 `).join('')}
             </svg>
         </div>
