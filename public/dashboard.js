@@ -473,6 +473,9 @@ function renderPriceChart(data) {
                 ${points.map(p => `
                     <text x="${p.x}" y="${chartHeight - 35}" class="x-label">${p.label}</text>
                 `).join('')}
+
+                <!-- 출처 -->
+                <text x="${chartWidth - marginRight}" y="${chartHeight - 5}" class="chart-source">출처: KAMIS (가락시장 도매가격)</text>
             </svg>
         </div>
     `;

@@ -653,6 +653,12 @@ section h4 {
     text-anchor: end;
 }
 
+.line-chart .chart-source {
+    font-size: 10px;
+    fill: #999;
+    text-anchor: end;
+}
+
 /* 바 차트 스타일 (물동량용) */
 .bar-chart {
     width: 100%;
