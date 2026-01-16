@@ -49,7 +49,8 @@ async function fetchGarakVolumeData(date) {
   }
 
   const serviceName = 'GarakPayAfter';
-  const url = `http://openAPI.seoul.go.kr:8088/${process.env.SEOUL_API_KEY}/json/${serviceName}/1/1000/`;
+  // 서울 열린데이터광장 API URL (http 포트 8088 사용)
+  const url = `http://openapi.seoul.go.kr:8088/${apiKey}/json/${serviceName}/1/1000/`;
 
   try {
     const response = await axios.get(url, {
