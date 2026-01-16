@@ -47,6 +47,12 @@ const searchResultsHeader = document.getElementById('searchResultsHeader');
 const searchQuery = document.getElementById('searchQuery');
 const searchResultsList = document.getElementById('searchResultsList');
 
+// 모달
+const priceChartModal = document.getElementById('priceChartModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalChart = document.getElementById('modalChart');
+const modalClose = document.getElementById('modalClose');
+
 // 현재 상태
 let currentProduct = 'tomato';
 
@@ -211,33 +217,39 @@ function renderWholesaleCards(data) {
     // 소매 가격 카드
     if (retail.price > 0) {
         const retailCard = document.createElement('div');
-        retailCard.className = 'wholesale-card retail-card';
+        retailCard.className = 'wholesale-card retail-card clickable';
+        retailCard.dataset.priceType = 'retail';
         retailCard.innerHTML = `
             <div class="card-title">소매가격</div>
             <div class="card-grade">${productInfo[currentProduct].name}</div>
             <div class="card-price">${formatPrice(retail.price)}</div>
             <div class="card-unit">1kg 기준 (전국평균)</div>
+            <div class="card-hint">클릭하여 추이 보기</div>
         `;
+        retailCard.addEventListener('click', () => showPriceChartModal('retail', '소매가격'));
         wholesaleCards.appendChild(retailCard);
     }
 
     // 도매 가격 카드 (상품, 중품)
     const cards = [
-        { grade: 'high', price: wholesale.high || 0 },
-        { grade: 'mid', price: wholesale.mid || 0 }
+        { grade: 'high', price: wholesale.high || 0, type: 'wholesale_high', label: '도매 상품' },
+        { grade: 'mid', price: wholesale.mid || 0, type: 'wholesale_mid', label: '도매 중품' }
     ];
 
     cards.forEach(card => {
         if (card.price === 0) return;
 
         const div = document.createElement('div');
-        div.className = 'wholesale-card';
+        div.className = 'wholesale-card clickable';
+        div.dataset.priceType = card.type;
         div.innerHTML = `
-            <div class="card-title">도매 ${gradeInfo[card.grade].label}</div>
+            <div class="card-title">${card.label}</div>
             <div class="card-grade">${productInfo[currentProduct].name}</div>
             <div class="card-price">${formatPrice(card.price)}</div>
             <div class="card-unit">1kg 기준 ${isDummy ? '(참고가격)' : '(가락시장)'}</div>
+            <div class="card-hint">클릭하여 추이 보기</div>
         `;
+        div.addEventListener('click', () => showPriceChartModal(card.type, card.label));
         wholesaleCards.appendChild(div);
     });
 
@@ -909,3 +921,117 @@ function renderSearchResults(data) {
         searchResultsList.appendChild(div);
     });
 }
+
+// ============================================
+// 모달: 가격 추이 그래프
+// ============================================
+async function showPriceChartModal(priceType, label) {
+    modalTitle.textContent = `${productInfo[currentProduct].name} ${label} 추이 (최근 30일)`;
+    modalChart.innerHTML = '<div class="loading-small"><div class="spinner"></div><p>데이터 로딩 중...</p></div>';
+    priceChartModal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/api/price-trend?product=${currentProduct}&period=daily&priceType=${priceType}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || '가격 추이 데이터를 가져오는 데 실패했습니다.');
+        }
+
+        renderModalChart(data, priceType, label);
+    } catch (error) {
+        modalChart.innerHTML = `<div class="chart-placeholder"><p>❌ ${error.message}</p></div>`;
+    }
+}
+
+function renderModalChart(data, priceType, label) {
+    const items = data.items || [];
+
+    if (items.length === 0) {
+        modalChart.innerHTML = '<div class="chart-placeholder"><p>📊 가격 추이 데이터가 없습니다.</p></div>';
+        return;
+    }
+
+    const displayItems = items.slice(-30);
+    const maxPrice = Math.max(...displayItems.map(i => i.price || 0));
+    const minPrice = Math.min(...displayItems.map(i => i.price || 0));
+    const priceRange = maxPrice - minPrice || 1;
+    const padding = priceRange * 0.1;
+
+    const chartWidth = 750;
+    const chartHeight = 280;
+    const marginTop = 30;
+    const marginBottom = 50;
+    const marginLeft = 60;
+    const marginRight = 20;
+    const graphWidth = chartWidth - marginLeft - marginRight;
+    const graphHeight = chartHeight - marginTop - marginBottom;
+
+    const points = displayItems.map((item, index) => {
+        const x = marginLeft + (index / (displayItems.length - 1 || 1)) * graphWidth;
+        const y = marginTop + graphHeight - ((item.price - minPrice + padding) / (priceRange + padding * 2)) * graphHeight;
+        return { x, y, price: item.price, label: item.label };
+    });
+
+    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${marginTop + graphHeight} L ${points[0].x} ${marginTop + graphHeight} Z`;
+
+    const yTicks = [];
+    for (let i = 0; i <= 4; i++) {
+        const price = minPrice - padding + (priceRange + padding * 2) * (i / 4);
+        const y = marginTop + graphHeight - (graphHeight * i / 4);
+        yTicks.push({ y, price: Math.round(price) });
+    }
+
+    // 선 색상 결정
+    const lineColor = priceType === 'retail' ? '#10b981' : '#2563eb';
+    const areaColor = priceType === 'retail' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(37, 99, 235, 0.15)';
+
+    const html = `
+        <div class="line-chart-container modal-line-chart">
+            <svg class="line-chart" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMidYMid meet">
+                ${yTicks.map(tick => `
+                    <line x1="${marginLeft}" y1="${tick.y}" x2="${chartWidth - marginRight}" y2="${tick.y}" class="grid-line" />
+                `).join('')}
+
+                ${yTicks.map(tick => `
+                    <text x="${marginLeft - 10}" y="${tick.y + 4}" class="y-label">${formatPrice(tick.price)}</text>
+                `).join('')}
+
+                <path d="${areaPath}" fill="${areaColor}" />
+                <path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+                ${points.map(p => `
+                    <g class="chart-point-group">
+                        <circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="${lineColor}" stroke-width="2" />
+                        <g class="chart-tooltip" transform="translate(${p.x}, ${p.y - 15})">
+                            <rect x="-40" y="-22" width="80" height="24" rx="4" class="tooltip-bg" />
+                            <text x="0" y="-6" class="tooltip-text">${formatPrice(p.price)}</text>
+                        </g>
+                    </g>
+                `).join('')}
+
+                ${points.map(p => `
+                    <text x="${p.x}" y="${chartHeight - 10}" class="x-label">${p.label}</text>
+                `).join('')}
+
+                <text x="${chartWidth - marginRight}" y="${chartHeight - 5}" class="chart-source">출처: KAMIS</text>
+            </svg>
+        </div>
+    `;
+
+    modalChart.innerHTML = html;
+}
+
+function closeModal() {
+    priceChartModal.style.display = 'none';
+}
+
+// 모달 닫기 이벤트
+modalClose.addEventListener('click', closeModal);
+priceChartModal.addEventListener('click', (e) => {
+    if (e.target === priceChartModal) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});

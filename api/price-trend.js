@@ -273,6 +273,7 @@ module.exports = async (req, res) => {
   try {
     const productKey = req.query.product || 'tomato';
     const period = req.query.period || 'daily'; // daily, monthly, yearly
+    const priceType = req.query.priceType || 'wholesale_high'; // retail, wholesale_high, wholesale_mid
 
     const product = PRODUCT_CODES[productKey];
     if (!product) {
@@ -293,7 +294,17 @@ module.exports = async (req, res) => {
       data = await fetchYearlyTrend(productKey);
     }
 
-    const items = parseTrendData(data, period);
+    let items = parseTrendData(data, period);
+
+    // priceType에 따라 가격 데이터 선택
+    if (priceType === 'retail') {
+      // 소매가격 사용
+      items = items.map(item => ({
+        ...item,
+        price: item.retailPrice || item.price
+      })).filter(item => item.price > 0);
+    }
+    // wholesale_high, wholesale_mid는 기본 도매가격(price)을 그대로 사용
 
     // KAMIS 데이터가 없으면 더미 데이터 생성
     if (items.length === 0) {
@@ -303,6 +314,7 @@ module.exports = async (req, res) => {
         product: productKey,
         productName: product.name,
         period: period,
+        priceType: priceType,
         items: dummyItems,
         isDummy: true,
         message: 'KAMIS API에서 데이터를 가져오지 못해 참고 데이터로 표시됩니다.'
@@ -314,6 +326,7 @@ module.exports = async (req, res) => {
       product: productKey,
       productName: product.name,
       period: period,
+      priceType: priceType,
       items: items
     });
 
