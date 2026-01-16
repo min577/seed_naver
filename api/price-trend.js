@@ -30,7 +30,7 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
-// 일별 가격 추이 조회 (API 16번: 신)일별 품목별 도매 가격자료)
+// 일별 가격 추이 조회 - 도매와 소매 동시 조회
 async function fetchDailyTrend(productKey) {
   const product = PRODUCT_CODES[productKey];
   if (!product) return null;
@@ -39,15 +39,16 @@ async function fetchDailyTrend(productKey) {
   const startDate = new Date();
   startDate.setDate(today.getDate() - 30);
 
-  const params = {
+  const url = 'https://www.kamis.or.kr/service/price/xml.do';
+
+  const baseParams = {
     action: 'periodProductList',
-    p_productclscode: '02', // 도매
     p_startday: formatDate(startDate).replace(/-/g, ''),
     p_endday: formatDate(today).replace(/-/g, ''),
     p_itemcategorycode: product.categoryCode,
     p_itemcode: product.itemCode,
     p_kindcode: product.kindCode,
-    p_productrankcode: '04', // 상품
+    p_productrankcode: '04',
     p_countrycode: '',
     p_convert_kg_yn: 'Y',
     p_cert_key: KAMIS_API_KEY,
@@ -55,18 +56,21 @@ async function fetchDailyTrend(productKey) {
     p_returntype: 'json'
   };
 
-  const url = 'https://www.kamis.or.kr/service/price/xml.do';
-
   try {
-    const response = await axios.get(url, {
-      params,
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    const [wholesaleRes, retailRes] = await Promise.all([
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '02' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      }),
+      axios.get(url, {
+        params: { ...baseParams, p_productclscode: '01' },
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      })
+    ]);
 
-    return response.data;
+    return { wholesale: wholesaleRes.data, retail: retailRes.data };
   } catch (error) {
     console.error('KAMIS 일별 추이 조회 오류:', error.message);
     return null;
@@ -207,13 +211,7 @@ function parseSingleSource(data, period) {
 
 // 응답 데이터 파싱 (도매 + 소매 병합)
 function parseTrendData(data, period) {
-  // 일별은 단일 소스
-  if (period === 'daily') {
-    const result = parseSingleSource(data, period);
-    return result.map(item => ({ ...item, retailPrice: 0 }));
-  }
-
-  // 월별/연도별은 도매+소매 병합
+  // 모든 기간에 대해 도매+소매 병합 처리
   const wholesaleData = data?.wholesale ? parseSingleSource(data.wholesale, period) : [];
   const retailData = data?.retail ? parseSingleSource(data.retail, period) : [];
 
