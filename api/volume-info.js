@@ -3,7 +3,7 @@
 const axios = require('axios');
 
 // 서울 열린데이터광장 API 설정
-const SEOUL_API_KEY = process.env.SEOUL_API_KEY || '6c45424a54616c7335385850787664';
+// SEOUL_API_KEY 환경변수를 Vercel에 설정하면 실제 데이터 사용 가능
 
 // 품목 코드 매핑 (부류 코드)
 const CATEGORY_CODES = {
@@ -314,10 +314,7 @@ module.exports = async (req, res) => {
     const date = req.query.date;
 
     // 서울 열린데이터광장 API 호출 시도
-    let apiData = null;
-    if (SEOUL_API_KEY && SEOUL_API_KEY !== 'sample') {
-      apiData = await fetchGarakVolumeData(date);
-    }
+    const apiData = await fetchGarakVolumeData(date);
 
     // API 응답 확인
     const hasApiData = apiData && apiData.GarakPayAfter && apiData.GarakPayAfter.RESULT?.CODE === 'INFO-000';
