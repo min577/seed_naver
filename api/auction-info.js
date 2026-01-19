@@ -26,9 +26,9 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 어제 날짜 (YYYY-MM-DD 형식) - 당일 데이터는 정산 전이라 없을 수 있음
+    // 최근 7일 이내 데이터 조회 (당일 데이터는 정산 전이라 없을 수 있음)
     const today = new Date();
-    today.setDate(today.getDate() - 1); // 어제 날짜
+    today.setDate(today.getDate() - 2); // 2일 전 날짜 (더 안정적)
     const dateStr = today.toISOString().split('T')[0];
 
     // API 엔드포인트: /trades
@@ -149,6 +149,12 @@ module.exports = async (req, res) => {
     // 도매시장 목록 추출
     const markets = [...new Set(result.map(item => item.market))];
 
+    console.log('최종 결과:', {
+      totalProducts: result.length,
+      totalMarkets: markets.length,
+      sampleItem: result[0]
+    });
+
     res.status(200).json({
       success: true,
       items: result,
@@ -156,7 +162,8 @@ module.exports = async (req, res) => {
       totalMarkets: markets.length,
       markets: markets,
       hasOriginData: items.filter(item => item.plor_nm).length > 0,
-      date: dateStr
+      date: dateStr,
+      message: result.length === 0 ? `${dateStr} 데이터가 없습니다. API 키 또는 날짜를 확인하세요.` : undefined
     });
 
   } catch (error) {
