@@ -26,6 +26,7 @@ module.exports = async (req, res) => {
     const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`;
 
     console.log('실시간 경매정보 API 호출');
+    console.log('API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
 
     const response = await fetch(url);
     const text = await response.text();
@@ -48,12 +49,15 @@ module.exports = async (req, res) => {
     }
 
     // 응답 구조 확인
+    console.log('파싱된 데이터 구조:', JSON.stringify(data).substring(0, 500));
+
     if (!data || !data.data) {
       console.error('예상치 못한 API 응답 구조');
       return res.status(200).json({
-        success: true,
-        items: [],
-        message: 'API 응답 데이터가 비어있습니다.'
+        success: false,
+        error: 'API 응답 데이터 구조 오류',
+        rawData: data,
+        message: 'API 응답 데이터가 비어있거나 구조가 다릅니다.'
       });
     }
 
