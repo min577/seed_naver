@@ -106,7 +106,12 @@ function parseApiDataByProduct(apiData) {
     else if (sortCode.startsWith('2')) category = '과일과채류';
     else if (sortCode.startsWith('3')) category = '일반채소류';
 
-    const productName = row.PUM_NM || row.PUM_CD || '알 수 없음';
+    let productName = row.PUM_NM || row.PUM_CD || '알 수 없음';
+
+    // '계'로 끝나는 품목명은 제외 (예: 사과계, 배계 등 - 소계 데이터)
+    if (productName.endsWith('계')) {
+      return;
+    }
 
     items.push({
       product: productName,
