@@ -26,8 +26,9 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 오늘 날짜 (YYYY-MM-DD 형식)
+    // 어제 날짜 (YYYY-MM-DD 형식) - 당일 데이터는 정산 전이라 없을 수 있음
     const today = new Date();
+    today.setDate(today.getDate() - 1); // 어제 날짜
     const dateStr = today.toISOString().split('T')[0];
 
     // API 엔드포인트: /trades
@@ -64,8 +65,8 @@ module.exports = async (req, res) => {
     // 응답 구조 확인
     console.log('파싱된 데이터 구조:', JSON.stringify(data).substring(0, 500));
 
-    // 공공데이터포털 API 응답 구조: data.data (배열)
-    if (!data || !data.data) {
+    // 공공데이터포털 API 응답 구조: response.body.items.item
+    if (!data || !data.response || !data.response.body) {
       console.error('예상치 못한 API 응답 구조');
       return res.status(200).json({
         success: false,
@@ -75,7 +76,8 @@ module.exports = async (req, res) => {
       });
     }
 
-    let items = data.data || [];
+    const responseBody = data.response.body;
+    let items = responseBody.items?.item || [];
 
     // 배열이 아닌 경우 배열로 변환
     if (!Array.isArray(items)) {
@@ -83,6 +85,7 @@ module.exports = async (req, res) => {
     }
 
     console.log('경매 데이터 개수:', items.length);
+    console.log('totalCount:', responseBody.totalCount);
     if (items.length > 0) {
       console.log('첫 번째 항목 샘플:', JSON.stringify(items[0]));
     }
