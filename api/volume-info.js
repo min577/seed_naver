@@ -427,11 +427,19 @@ module.exports = async (req, res) => {
       // 품목별 물동량
       items = parseApiDataByProduct(apiData);
 
-      // 품목 필터 적용
+      // 품목 필터 적용 (정확히 일치하거나 시작하는 경우만)
       if (items && productFilter) {
-        items = items.filter(item =>
-          item.product && item.product.includes(productFilter)
-        );
+        items = items.filter(item => {
+          if (!item.product) return false;
+          // 정확히 일치하는 경우
+          if (item.product === productFilter) return true;
+          // 품목명이 필터로 시작하는 경우 (예: "배" 선택 시 "배(국산)" 포함)
+          // 하지만 "배추", "양배추"는 제외
+          return item.product.startsWith(productFilter) &&
+                 (item.product.length === productFilter.length ||
+                  item.product[productFilter.length] === '(' ||
+                  item.product[productFilter.length] === ' ');
+        });
       }
 
       if (items && items.length > 0) {
