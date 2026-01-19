@@ -21,9 +21,15 @@ module.exports = async (req, res) => {
 
     const product = req.query.product || ''; // 품목명 필터
     const pageNo = req.query.pageNo || '1';
-    const numOfRows = req.query.numOfRows || '100';
+    const numOfRows = req.query.numOfRows || '1000';
 
-    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    // 오늘 날짜 (YYYY-MM-DD 형식)
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+
+    const reqDate = req.query.date || dateStr;
+
+    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[scsbd_dt::LIKE]=${reqDate}`;
 
     console.log('실시간 경매정보 API 호출');
     console.log('API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
