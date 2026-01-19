@@ -23,74 +23,31 @@ module.exports = async (req, res) => {
     const pageNo = req.query.pageNo || '1';
     const numOfRows = req.query.numOfRows || '1000';
 
-    // 날짜 파라미터 처리
-    const today = new Date();
-    let reqDate = req.query.date;
+    // 날짜 조건 없이 전체 데이터 조회 (최신 데이터 확인)
+    console.log('날짜 조건 없이 전체 데이터 조회 시작');
+
+    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`;
     let data = null;
     let text = '';
 
-    // 날짜가 지정되지 않은 경우, 최근 30일 중 데이터가 있는 날짜 찾기
-    if (!reqDate) {
-      console.log('최근 데이터가 있는 날짜 탐색 시작 (30일 범위)');
+    console.log('실시간 경매정보 API 전체 조회 (URL):', url);
 
-      for (let daysBack = 0; daysBack <= 30; daysBack++) {
-        const targetDate = new Date(today);
-        targetDate.setDate(targetDate.getDate() - daysBack);
-        const dayOfWeek = targetDate.getDay();
+    const response = await fetch(url);
+    text = await response.text();
+    console.log('경매정보 API 응답 상태:', response.status);
 
-        // 일요일은 건너뛰기
-        if (dayOfWeek === 0 && daysBack > 0) continue;
-
-        const dateStr = targetDate.toISOString().split('T')[0];
-        const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=1&numOfRows=10&cond[scsbd_dt::LIKE]=${dateStr}`;
-
-        console.log(`${daysBack}일 전 (${dateStr}, ${['일', '월', '화', '수', '목', '금', '토'][dayOfWeek]}) 조회 중...`);
-
-        const response = await fetch(url);
-        text = await response.text();
-        data = JSON.parse(text);
-
-        if (data.response?.body?.totalCount > 0) {
-          reqDate = dateStr;
-          console.log('✓ 데이터 발견:', dateStr, '총', data.response.body.totalCount, '건');
-          break;
-        }
-      }
-
-      if (!reqDate) {
-        console.log('최근 30일 내 데이터 없음');
-        return res.status(200).json({
-          success: false,
-          error: '최근 30일 내 경매 데이터가 없습니다.',
-          message: '일요일을 제외한 최근 30일 내 경매 데이터를 찾을 수 없습니다.'
-        });
-      }
-    }
-
-    // 실제 데이터 조회 (전체 데이터)
-    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[scsbd_dt::LIKE]=${reqDate}`;
-
-    console.log('실시간 경매정보 API 전체 조회');
-    console.log('조회 날짜:', reqDate);
-
-    if (!data) {
-      const response = await fetch(url);
-      text = await response.text();
-      console.log('경매정보 API 응답 상태:', response.status);
-
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON 파싱 오류:', parseError);
-        console.error('원본 응답 (첫 1000자):', text.substring(0, 1000));
-        return res.status(200).json({
-          success: false,
-          error: 'API 응답 파싱 실패',
-          rawResponse: text.substring(0, 1000),
-          parseError: parseError.message,
-          apiUrl: url
-        });
-      }
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      console.error('원본 응답 (첫 1000자):', text.substring(0, 1000));
+      return res.status(200).json({
+        success: false,
+        error: 'API 응답 파싱 실패',
+        rawResponse: text.substring(0, 1000),
+        parseError: parseError.message,
+        apiUrl: url
+      });
     }
 
     // 응답 구조 확인
