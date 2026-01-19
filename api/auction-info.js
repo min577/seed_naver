@@ -26,9 +26,10 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 특정 날짜 데이터 조회 (테스트용: 2025-01-15)
-    // 실제 운영시에는 최근 영업일 기준으로 조회하도록 수정 필요
-    const dateStr = '2025-01-15'; // 데이터 존재 확인된 날짜로 고정
+    // 최근 영업일 데이터 조회 (3~7일 전)
+    const today = new Date();
+    today.setDate(today.getDate() - 5); // 5일 전 (주말 고려)
+    const dateStr = today.toISOString().split('T')[0];
 
     // API 엔드포인트: /trades
     // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자)
