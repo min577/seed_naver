@@ -23,15 +23,25 @@ module.exports = async (req, res) => {
     const pageNo = req.query.pageNo || '1';
     const numOfRows = req.query.numOfRows || '1000';
 
-    // 오늘 날짜 (YYYY-MM-DD 형식)
+    // 최근 영업일 날짜 계산 (일요일 제외)
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dayOfWeek = today.getDay();
+
+    // 일요일(0)이면 금요일(2일 전), 월요일(1)이면 금요일(3일 전), 그 외는 전날
+    let daysBack = 1;
+    if (dayOfWeek === 0) daysBack = 2; // 일요일 -> 금요일
+    else if (dayOfWeek === 1) daysBack = 3; // 월요일 -> 금요일
+
+    const targetDate = new Date(today);
+    targetDate.setDate(targetDate.getDate() - daysBack);
+    const dateStr = targetDate.toISOString().split('T')[0];
 
     const reqDate = req.query.date || dateStr;
 
     const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[scsbd_dt::LIKE]=${reqDate}`;
 
     console.log('실시간 경매정보 API 호출');
+    console.log('조회 날짜:', reqDate, '(요일:', ['일', '월', '화', '수', '목', '금', '토'][dayOfWeek] + ')');
     console.log('API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
 
     const response = await fetch(url);
