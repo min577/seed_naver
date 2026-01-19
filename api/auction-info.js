@@ -29,11 +29,11 @@ module.exports = async (req, res) => {
     let data = null;
     let text = '';
 
-    // 날짜가 지정되지 않은 경우, 최근 7일 중 데이터가 있는 날짜 찾기
+    // 날짜가 지정되지 않은 경우, 최근 30일 중 데이터가 있는 날짜 찾기
     if (!reqDate) {
-      console.log('최근 데이터가 있는 날짜 탐색 시작');
+      console.log('최근 데이터가 있는 날짜 탐색 시작 (30일 범위)');
 
-      for (let daysBack = 0; daysBack <= 7; daysBack++) {
+      for (let daysBack = 0; daysBack <= 30; daysBack++) {
         const targetDate = new Date(today);
         targetDate.setDate(targetDate.getDate() - daysBack);
         const dayOfWeek = targetDate.getDay();
@@ -58,11 +58,11 @@ module.exports = async (req, res) => {
       }
 
       if (!reqDate) {
-        console.log('최근 7일 내 데이터 없음');
+        console.log('최근 30일 내 데이터 없음');
         return res.status(200).json({
           success: false,
-          error: '최근 7일 내 경매 데이터가 없습니다.',
-          message: '일요일을 제외한 최근 7일 내 경매 데이터를 찾을 수 없습니다.'
+          error: '최근 30일 내 경매 데이터가 없습니다.',
+          message: '일요일을 제외한 최근 30일 내 경매 데이터를 찾을 수 없습니다.'
         });
       }
     }
