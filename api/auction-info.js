@@ -26,21 +26,22 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 조회 날짜 - 최근 영업일 (오늘 또는 어제)
-    // KST 기준으로 현재 날짜 계산
+    // 최근 여러 날짜를 시도 (최근 10일)
     const now = new Date();
     const kstOffset = 9 * 60; // KST는 UTC+9
-    const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
+    const testDates = [];
 
-    // 어제 날짜 (경매 데이터는 보통 전날 데이터가 제공됨)
-    kstTime.setDate(kstTime.getDate() - 1);
+    for (let i = 1; i <= 10; i++) {
+      const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
+      kstTime.setDate(kstTime.getUTCDate() - i);
 
-    const year = kstTime.getUTCFullYear();
-    const month = String(kstTime.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(kstTime.getUTCDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+      const year = kstTime.getUTCFullYear();
+      const month = String(kstTime.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(kstTime.getUTCDate()).padStart(2, '0');
+      testDates.push(`${year}-${month}-${day}`);
+    }
 
-    console.log('조회 날짜:', dateStr);
+    console.log('조회할 날짜 목록:', testDates);
 
     // 전국 주요 도매시장 코드 (32개 공영도매시장 중 주요 시장)
     const marketCodes = [
@@ -64,60 +65,65 @@ module.exports = async (req, res) => {
 
     let allItems = [];
     let successCount = 0;
-    let errorMessages = [];
+    let dateStr = '';
 
-    // 각 도매시장별로 데이터 조회
-    for (const market of marketCodes) {
-      try {
-        const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}&cond[whsl_mrkt_cd::EQ]=${market.code}`;
+    // 각 날짜별로 시도 (데이터를 찾으면 중단)
+    for (const testDate of testDates) {
+      console.log(`날짜 ${testDate} 조회 시작`);
+      let dateItems = [];
 
-        console.log(`${market.name}(${market.code}) 조회 중...`);
-
-        const response = await fetch(url);
-        const text = await response.text();
-
-        let data = null;
+      // 각 도매시장별로 데이터 조회
+      for (const market of marketCodes) {
         try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.error(`${market.name} JSON 파싱 오류:`, parseError);
-          errorMessages.push(`${market.name}: 파싱 오류`);
-          continue;
+          const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${testDate}&cond[whsl_mrkt_cd::EQ]=${market.code}`;
+
+          const response = await fetch(url);
+          const text = await response.text();
+
+          let data = null;
+          try {
+            data = JSON.parse(text);
+          } catch (parseError) {
+            continue;
+          }
+
+          // 응답 구조 확인
+          if (!data || !data.response || !data.response.body) {
+            continue;
+          }
+
+          const responseHeader = data.response.header;
+          const responseBody = data.response.body;
+
+          // 에러 코드 확인
+          if (responseHeader && responseHeader.resultCode !== '00' && responseHeader.resultCode !== '0') {
+            continue;
+          }
+
+          let items = responseBody.items?.item || [];
+
+          // 배열이 아닌 경우 배열로 변환
+          if (!Array.isArray(items)) {
+            items = items ? [items] : [];
+          }
+
+          if (items.length > 0) {
+            dateItems = dateItems.concat(items);
+          }
+        } catch (marketError) {
+          console.error(`${market.name} 조회 오류:`, marketError.message);
         }
+      }
 
-        // 응답 구조 확인
-        if (!data || !data.response || !data.response.body) {
-          console.log(`${market.name}: 응답 구조 오류`);
-          errorMessages.push(`${market.name}: 응답 구조 오류`);
-          continue;
-        }
-
-        const responseHeader = data.response.header;
-        const responseBody = data.response.body;
-
-        // 에러 코드 확인
-        if (responseHeader && responseHeader.resultCode !== '00' && responseHeader.resultCode !== '0') {
-          console.log(`${market.name}: API 오류 - ${responseHeader.resultMsg}`);
-          errorMessages.push(`${market.name}: ${responseHeader.resultMsg}`);
-          continue;
-        }
-
-        let items = responseBody.items?.item || [];
-
-        // 배열이 아닌 경우 배열로 변환
-        if (!Array.isArray(items)) {
-          items = items ? [items] : [];
-        }
-
-        console.log(`${market.name}: ${items.length}건`);
-
-        if (items.length > 0) {
-          allItems = allItems.concat(items);
-          successCount++;
-        }
-      } catch (marketError) {
-        console.error(`${market.name} 조회 오류:`, marketError);
-        errorMessages.push(`${market.name}: ${marketError.message}`);
+      // 이 날짜에서 데이터를 찾았으면 사용하고 종료
+      if (dateItems.length > 0) {
+        allItems = dateItems;
+        dateStr = testDate;
+        successCount = marketCodes.filter(m =>
+          dateItems.some(item => item.whsl_mrkt_cd === m.code)
+        ).length;
+        console.log(`✓ ${testDate} 데이터 발견! (${allItems.length}건, ${successCount}개 시장)`);
+        break;
       }
     }
 
@@ -128,12 +134,10 @@ module.exports = async (req, res) => {
       return res.status(200).json({
         success: false,
         error: '데이터 없음',
-        message: `${dateStr} 전국 도매시장 데이터가 없습니다`,
+        message: `최근 10일간 전국 도매시장 데이터가 없습니다`,
         debugInfo: {
-          date: dateStr,
-          marketsChecked: marketCodes.length,
-          successCount: successCount,
-          errors: errorMessages
+          datesChecked: testDates,
+          marketsChecked: marketCodes.length
         }
       });
     }
