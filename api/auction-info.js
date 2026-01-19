@@ -37,7 +37,14 @@ module.exports = async (req, res) => {
       data = JSON.parse(text);
     } catch (parseError) {
       console.error('JSON 파싱 오류:', parseError);
-      throw new Error('API 응답을 파싱할 수 없습니다.');
+      console.error('원본 응답 (첫 1000자):', text.substring(0, 1000));
+      return res.status(200).json({
+        success: false,
+        error: 'API 응답 파싱 실패',
+        rawResponse: text.substring(0, 1000),
+        parseError: parseError.message,
+        apiUrl: url
+      });
     }
 
     // 응답 구조 확인
