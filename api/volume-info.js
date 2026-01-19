@@ -323,6 +323,36 @@ module.exports = async (req, res) => {
     const date = req.query.date;
     const productFilter = req.query.product || ''; // 품목 필터 (예: 토마토)
 
+    // 품목별 뷰에서 공공데이터 API 사용 시도 (산지 정보 포함)
+    if (viewType === 'product' && process.env.PUBLIC_DATA_API_KEY) {
+      try {
+        const publicApiUrl = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}/api/auction-info?product=${encodeURIComponent(productFilter)}`;
+        console.log('공공데이터 API 호출 시도:', publicApiUrl);
+
+        const publicResponse = await fetch(publicApiUrl);
+        const publicData = await publicResponse.json();
+
+        if (publicData.success && publicData.items && publicData.items.length > 0) {
+          console.log('공공데이터 API 성공, 품목 수:', publicData.items.length);
+
+          return res.status(200).json({
+            success: true,
+            viewType: viewType,
+            date: new Date().toISOString().split('T')[0],
+            items: publicData.items,
+            summary: {
+              totalProducts: publicData.totalProducts || publicData.items.length,
+              totalVolume: publicData.items.reduce((sum, item) => sum + item.volume, 0)
+            },
+            isDummy: false,
+            dataSource: 'public_api'
+          });
+        }
+      } catch (publicApiError) {
+        console.log('공공데이터 API 실패, 서울시 API로 폴백:', publicApiError.message);
+      }
+    }
+
     // 서울 열린데이터광장 API 호출 시도
     const apiData = await fetchGarakVolumeData(date);
 
