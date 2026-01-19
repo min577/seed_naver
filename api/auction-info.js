@@ -26,15 +26,9 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 최근 영업일 데이터 조회 - 한국 시간 기준
-    const today = new Date();
-    // 한국 시간대 오프셋 적용 (UTC+9)
-    const koreaTime = new Date(today.getTime() + (9 * 60 * 60 * 1000));
-    koreaTime.setDate(koreaTime.getDate() - 7); // 7일 전 (영업일 확보)
-    const year = koreaTime.getFullYear();
-    const month = String(koreaTime.getMonth() + 1).padStart(2, '0');
-    const day = String(koreaTime.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    // 최근 영업일 데이터 조회 - 고정 날짜 (2025년 데이터)
+    // TODO: 2026년 데이터 제공 시작되면 동적 날짜로 변경
+    const dateStr = '2025-01-10'; // 확실한 영업일 데이터
 
     // API 엔드포인트: /trades
     // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자)
