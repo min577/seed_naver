@@ -21,85 +21,118 @@ module.exports = async (req, res) => {
 
     const product = req.query.product || ''; // 품목명 필터
     const pageNo = req.query.pageNo || '1';
-    const numOfRows = req.query.numOfRows || '1000';
+    const numOfRows = req.query.numOfRows || '100';
 
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 여러 날짜를 시도하여 데이터 찾기
-    const testDates = [
-      '2024-12-31',
-      '2024-12-30',
-      '2024-12-27',
-      '2024-12-26',
-      '2024-12-25',
-      '2024-12-24',
-      '2024-12-23',
-      '2024-12-20',
-      '2025-01-02',
-      '2025-01-03',
-      '2025-01-06',
-      '2025-01-07',
-      '2025-01-08',
-      '2025-01-09',
-      '2025-01-10'
-    ];
+    // 단일 날짜로 테스트 (2024년 12월 31일)
+    const dateStr = '2024-12-31';
+
+    // API 엔드포인트: /trades
+    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}`;
+
+    console.log('API 호출 URL:', url.replace(apiKey, 'HIDDEN'));
+    console.log('조회 날짜:', dateStr);
+
+    const response = await fetch(url);
+    const text = await response.text();
+
+    console.log('응답 상태:', response.status);
+    console.log('응답 본문 (첫 2000자):', text.substring(0, 2000));
 
     let data = null;
-    let dateStr = '';
-    let items = [];
-
-    // 각 날짜를 시도하여 데이터가 있는지 확인
-    for (const testDate of testDates) {
-      const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${testDate}`;
-
-      console.log(`테스트 날짜: ${testDate}`);
-
-      const response = await fetch(url);
-      const text = await response.text();
-      console.log('경매정보 API 응답 상태:', response.status);
-
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON 파싱 오류:', parseError);
-        continue; // 다음 날짜 시도
-      }
-
-      // 응답 구조 확인
-      if (!data || !data.response || !data.response.body) {
-        console.log(`${testDate}: 응답 구조 오류`);
-        continue;
-      }
-
-      const responseBody = data.response.body;
-      let testItems = responseBody.items?.item || [];
-
-      // 배열이 아닌 경우 배열로 변환
-      if (!Array.isArray(testItems)) {
-        testItems = testItems ? [testItems] : [];
-      }
-
-      console.log(`${testDate}: 데이터 개수 = ${testItems.length}, totalCount = ${responseBody.totalCount}`);
-
-      // 데이터가 있으면 사용
-      if (testItems.length > 0) {
-        items = testItems;
-        dateStr = testDate;
-        console.log(`✓ ${testDate} 데이터 발견! (${items.length}건)`);
-        console.log('첫 번째 항목 샘플:', JSON.stringify(items[0]));
-        break; // 데이터를 찾았으므로 종료
-      }
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      return res.status(200).json({
+        success: false,
+        error: 'API 응답 파싱 실패',
+        rawResponse: text.substring(0, 2000),
+        parseError: parseError.message
+      });
     }
 
-    // 모든 날짜를 시도했지만 데이터가 없는 경우
+    console.log('파싱된 데이터 전체 구조:', JSON.stringify(data, null, 2).substring(0, 3000));
+
+    // 응답 구조 확인
+    if (!data || !data.response) {
+      return res.status(200).json({
+        success: false,
+        error: '응답 구조 오류',
+        message: 'response 객체가 없습니다',
+        rawData: data,
+        debugInfo: {
+          hasData: !!data,
+          hasResponse: !!(data?.response),
+          dataKeys: data ? Object.keys(data) : []
+        }
+      });
+    }
+
+    const responseHeader = data.response.header;
+    const responseBody = data.response.body;
+
+    console.log('응답 헤더:', JSON.stringify(responseHeader));
+    console.log('응답 바디 구조:', JSON.stringify(responseBody).substring(0, 1000));
+
+    // 에러 코드 확인
+    if (responseHeader && responseHeader.resultCode !== '00') {
+      return res.status(200).json({
+        success: false,
+        error: 'API 오류',
+        resultCode: responseHeader.resultCode,
+        resultMessage: responseHeader.resultMsg,
+        debugInfo: {
+          apiUrl: url.replace(apiKey, 'HIDDEN'),
+          date: dateStr
+        }
+      });
+    }
+
+    if (!responseBody) {
+      return res.status(200).json({
+        success: false,
+        error: 'body 없음',
+        message: 'response.body가 없습니다',
+        responseHeader: responseHeader,
+        debugInfo: {
+          hasBody: !!responseBody,
+          responseKeys: data.response ? Object.keys(data.response) : []
+        }
+      });
+    }
+
+    let items = responseBody.items?.item || [];
+
+    // 배열이 아닌 경우 배열로 변환
+    if (!Array.isArray(items)) {
+      items = items ? [items] : [];
+    }
+
+    console.log('데이터 개수:', items.length);
+    console.log('totalCount:', responseBody.totalCount);
+    if (items.length > 0) {
+      console.log('첫 번째 항목:', JSON.stringify(items[0]));
+    }
+
+    // 데이터가 없는 경우
     if (items.length === 0) {
-      console.log('모든 테스트 날짜에서 데이터를 찾지 못했습니다.');
       return res.status(200).json({
         success: false,
         error: '데이터 없음',
-        message: '여러 날짜를 시도했지만 데이터를 찾지 못했습니다. API가 현재 데이터를 제공하지 않을 수 있습니다.',
-        testedDates: testDates
+        message: `${dateStr} 데이터가 없습니다`,
+        debugInfo: {
+          resultCode: responseHeader?.resultCode,
+          resultMessage: responseHeader?.resultMsg,
+          totalCount: responseBody.totalCount,
+          numOfRows: responseBody.numOfRows,
+          pageNo: responseBody.pageNo,
+          hasItems: !!responseBody.items,
+          itemsType: typeof responseBody.items,
+          apiUrl: url.replace(apiKey, 'HIDDEN')
+        }
       });
     }
 
@@ -176,15 +209,15 @@ module.exports = async (req, res) => {
       totalMarkets: markets.length,
       markets: markets,
       hasOriginData: items.filter(item => item.plor_nm).length > 0,
-      date: dateStr,
-      message: result.length === 0 ? `${dateStr} 데이터가 없습니다.` : undefined
+      date: dateStr
     });
 
   } catch (error) {
     console.error('실시간 경매정보 API 오류:', error);
     res.status(500).json({
       success: false,
-      error: error.message || '경매 정보를 가져오는 데 실패했습니다.'
+      error: error.message || '경매 정보를 가져오는 데 실패했습니다.',
+      stack: error.stack
     });
   }
 };
