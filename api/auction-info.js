@@ -26,20 +26,19 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 최근 여러 날짜를 시도 (최근 10일)
-    const now = new Date();
-    const kstOffset = 9 * 60; // KST는 UTC+9
-    const testDates = [];
-
-    for (let i = 1; i <= 10; i++) {
-      const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
-      kstTime.setDate(kstTime.getUTCDate() - i);
-
-      const year = kstTime.getUTCFullYear();
-      const month = String(kstTime.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(kstTime.getUTCDate()).padStart(2, '0');
-      testDates.push(`${year}-${month}-${day}`);
-    }
+    // 2025년 최근 날짜부터 시도 (API가 2026년 데이터를 아직 제공하지 않음)
+    const testDates = [
+      '2025-12-31',
+      '2025-12-30',
+      '2025-12-27',
+      '2025-12-26',
+      '2025-12-25',
+      '2025-12-24',
+      '2025-12-23',
+      '2025-12-20',
+      '2025-12-19',
+      '2025-12-18'
+    ];
 
     console.log('조회할 날짜 목록:', testDates);
 
