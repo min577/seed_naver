@@ -1288,6 +1288,74 @@ section h4 {
     white-space: nowrap;
 }
 
+/* 유통 흐름 시각화 */
+.volume-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    max-width: 400px;
+}
+
+.flow-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.flow-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.flow-origin {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #fff3e0;
+    color: #e65100;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(230, 81, 0, 0.1);
+}
+
+.flow-destination {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #e8f5e9;
+    color: #2e7d32;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(46, 125, 50, 0.1);
+}
+
+.flow-corp {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1565c0;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(21, 101, 192, 0.1);
+}
+
+.flow-arrow {
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+    margin: 0 2px;
+}
+
 /* 추이 카드 */
 .volume-card.trend-card {
     display: grid;

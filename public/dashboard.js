@@ -873,6 +873,40 @@ function renderOrigins(origins) {
     ).join('');
 }
 
+// 산지 유통 흐름 렌더링 (화살표 포함)
+function renderOriginFlow(origins) {
+    if (!origins || origins.length === 0) return '<span class="flow-origin">산지 미상</span>';
+
+    return origins.map(origin =>
+        `<span class="flow-origin">${origin.name} (${formatVolume(origin.volume)})</span>`
+    ).join('<span class="flow-arrow">+</span>');
+}
+
+// 도매법인 유통 흐름 렌더링 (화살표 포함)
+function renderCorporationFlow(corporations) {
+    if (!corporations) return '';
+
+    const corpNames = {
+        seoul: '서울청과',
+        nonghyup: '농협',
+        jungang: '중앙청과',
+        donghwa: '동화청과',
+        hankook: '한국청과',
+        daea: '대아청과'
+    };
+
+    const sortedCorps = Object.entries(corporations)
+        .filter(([key, value]) => value > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    if (sortedCorps.length === 0) return '';
+
+    return sortedCorps.map(([key, value]) =>
+        `<span class="flow-corp">${corpNames[key] || key} (${formatVolume(value)})</span>`
+    ).join('<span class="flow-arrow">+</span>');
+}
+
 function renderVolumeProductCards(data) {
     volumeCards.innerHTML = '';
     const items = data.items || [];
@@ -892,7 +926,7 @@ function renderVolumeProductCards(data) {
         card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
 
         if (hasOriginData) {
-            // 공공데이터 API 데이터: 산지 정보 표시
+            // 공공데이터 API 데이터: 산지 → 가락시장 유통 흐름 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">
@@ -902,12 +936,17 @@ function renderVolumeProductCards(data) {
                 <div class="volume-data">
                     <div class="volume-amount">${formatVolume(item.volume)}</div>
                 </div>
-                <div class="volume-origins">
-                    ${renderOrigins(item.origins)}
+                <div class="volume-flow">
+                    <div class="flow-label">유통 흐름</div>
+                    <div class="flow-path">
+                        ${renderOriginFlow(item.origins)}
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-destination">가락시장</span>
+                    </div>
                 </div>
             `;
         } else if (hasCorporationData) {
-            // 서울시 API 데이터: 도매법인 정보 표시
+            // 서울시 API 데이터: 가락시장 → 도매법인 유통 흐름 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">
@@ -917,8 +956,13 @@ function renderVolumeProductCards(data) {
                 <div class="volume-data">
                     <div class="volume-amount">${formatVolume(item.volume)}</div>
                 </div>
-                <div class="volume-corporations">
-                    ${renderCorporations(item.corporations)}
+                <div class="volume-flow">
+                    <div class="flow-label">유통 흐름</div>
+                    <div class="flow-path">
+                        <span class="flow-destination">가락시장</span>
+                        <span class="flow-arrow">→</span>
+                        ${renderCorporationFlow(item.corporations)}
+                    </div>
                 </div>
             `;
         } else {
