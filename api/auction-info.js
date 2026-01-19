@@ -26,8 +26,21 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 조회 날짜
-    const dateStr = '2024-12-31';
+    // 조회 날짜 - 최근 영업일 (오늘 또는 어제)
+    // KST 기준으로 현재 날짜 계산
+    const now = new Date();
+    const kstOffset = 9 * 60; // KST는 UTC+9
+    const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
+
+    // 어제 날짜 (경매 데이터는 보통 전날 데이터가 제공됨)
+    kstTime.setDate(kstTime.getDate() - 1);
+
+    const year = kstTime.getUTCFullYear();
+    const month = String(kstTime.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(kstTime.getUTCDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    console.log('조회 날짜:', dateStr);
 
     // 전국 주요 도매시장 코드 (32개 공영도매시장 중 주요 시장)
     const marketCodes = [
