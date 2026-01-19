@@ -724,11 +724,19 @@ function renderVolumeSummary(data) {
             ];
         }
     } else if (viewType === 'product') {
-        items = [
-            { label: '전체 품목', value: summary.totalProducts || 0, unit: '개' },
-            { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
-            { label: '최다 거래', value: summary.topProduct || '-', unit: '' }
-        ];
+        if (isApiData) {
+            items = [
+                { label: '전체 품목', value: summary.totalProducts || 0, unit: '개' },
+                { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+                { label: '데이터 출처', value: '가락시장', unit: '' }
+            ];
+        } else {
+            items = [
+                { label: '전체 품목', value: summary.totalProducts || 0, unit: '개' },
+                { label: '총 물동량', value: formatVolume(summary.totalVolume || 0), unit: '' },
+                { label: '최다 거래', value: summary.topProduct || '-', unit: '' }
+            ];
+        }
     } else {
         items = [
             { label: '일평균', value: formatVolume(summary.averageDaily || 0), unit: '' },
@@ -865,24 +873,47 @@ function renderVolumeProductCards(data) {
         return;
     }
 
+    const isApiData = !data.isDummy && items[0] && items[0].corporations;
+
     items.forEach((item, index) => {
-        const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
-        const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
         const isTop = index < 3;
 
         const card = document.createElement('div');
         card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
-        card.innerHTML = `
-            <div class="volume-rank">${index + 1}</div>
-            <div class="volume-info">
-                <div class="volume-name">${item.product}</div>
-                <div class="volume-category-badge">${item.category}</div>
-            </div>
-            <div class="volume-data">
-                <div class="volume-amount">${formatVolume(item.volume)}</div>
-                <div class="volume-change ${changeClass}">${changeText}</div>
-            </div>
-        `;
+
+        if (isApiData) {
+            // 실제 API 데이터: 도매법인 정보 표시
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${item.product}</div>
+                    <div class="volume-category-badge">${item.category}</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.volume)}</div>
+                </div>
+                <div class="volume-corporations">
+                    ${renderCorporations(item.corporations)}
+                </div>
+            `;
+        } else {
+            // 더미 데이터: 변동률 표시
+            const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'same';
+            const changeText = item.change === 0 ? '변동없음' : `${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(1)}%`;
+
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${item.product}</div>
+                    <div class="volume-category-badge">${item.category}</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.volume)}</div>
+                    <div class="volume-change ${changeClass}">${changeText}</div>
+                </div>
+            `;
+        }
+
         volumeCards.appendChild(card);
     });
 }

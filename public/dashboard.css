@@ -1243,6 +1243,14 @@ section h4 {
     background: #fafafa;
 }
 
+/* 품목 카드 (API 데이터 포함) */
+.volume-card.product-card {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+}
+
 .volume-corporations {
     display: flex;
     flex-wrap: wrap;
