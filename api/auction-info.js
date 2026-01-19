@@ -23,14 +23,19 @@ module.exports = async (req, res) => {
     const pageNo = req.query.pageNo || '1';
     const numOfRows = req.query.numOfRows || '1000';
 
-    // 날짜 조건 없이 전체 데이터 조회 (최신 데이터 확인)
-    console.log('날짜 조건 없이 전체 데이터 조회 시작');
+    // 산지공판장 경락가격정보 API 테스트
+    console.log('산지공판장 경락가격정보 API 조회 시작');
 
-    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    // 오늘 날짜
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+
+    const url = `http://apis.data.go.kr/B552845/fmnPriceOriginInfo/getOriginPrice?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`;
     let data = null;
     let text = '';
 
-    console.log('실시간 경매정보 API 전체 조회 (URL):', url);
+    console.log('산지공판장 경락가격정보 API 조회 (URL):', url);
+    console.log('조회 날짜:', dateStr);
 
     const response = await fetch(url);
     text = await response.text();
