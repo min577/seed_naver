@@ -864,6 +864,15 @@ function renderCorporations(corporations) {
     ).join('');
 }
 
+// 산지별 물동량 렌더링
+function renderOrigins(origins) {
+    if (!origins || origins.length === 0) return '';
+
+    return origins.map(origin =>
+        `<span class="origin-item">${origin.name}: ${formatVolume(origin.volume)}</span>`
+    ).join('');
+}
+
 function renderVolumeProductCards(data) {
     volumeCards.innerHTML = '';
     const items = data.items || [];
@@ -873,7 +882,8 @@ function renderVolumeProductCards(data) {
         return;
     }
 
-    const isApiData = !data.isDummy && items[0] && items[0].corporations;
+    const hasOriginData = items[0] && items[0].origins;
+    const hasCorporationData = items[0] && items[0].corporations;
 
     items.forEach((item, index) => {
         const isTop = index < 3;
@@ -881,8 +891,23 @@ function renderVolumeProductCards(data) {
         const card = document.createElement('div');
         card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
 
-        if (isApiData) {
-            // 실제 API 데이터: 도매법인 정보 표시
+        if (hasOriginData) {
+            // 공공데이터 API 데이터: 산지 정보 표시
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${item.product}</div>
+                    <div class="volume-category-badge">${item.category}</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.volume)}</div>
+                </div>
+                <div class="volume-origins">
+                    ${renderOrigins(item.origins)}
+                </div>
+            `;
+        } else if (hasCorporationData) {
+            // 서울시 API 데이터: 도매법인 정보 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">

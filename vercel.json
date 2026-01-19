@@ -36,6 +36,14 @@
       "dest": "/api/general-search.js"
     },
     {
+      "src": "/api/origin-info",
+      "dest": "/api/origin-info.js"
+    },
+    {
+      "src": "/api/auction-info",
+      "dest": "/api/auction-info.js"
+    },
+    {
       "src": "^/$",
       "dest": "/public/index.html"
     },

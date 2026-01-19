@@ -1,0 +1,120 @@
+// 공공데이터포털 - 실시간 경매정보 API (산지 정보 포함)
+// 한국농수산식품유통공사 전국 공영도매시장 실시간 경매정보
+
+module.exports = async (req, res) => {
+  // CORS 헤더 설정
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    const apiKey = process.env.PUBLIC_DATA_API_KEY;
+
+    if (!apiKey) {
+      throw new Error('PUBLIC_DATA_API_KEY 환경변수가 설정되지 않았습니다.');
+    }
+
+    const product = req.query.product || ''; // 품목명 필터
+    const pageNo = req.query.pageNo || '1';
+    const numOfRows = req.query.numOfRows || '100';
+
+    const url = `https://apis.data.go.kr/B552845/katRealTime2/trades2?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+
+    console.log('실시간 경매정보 API 호출');
+
+    const response = await fetch(url);
+    const text = await response.text();
+
+    console.log('경매정보 API 응답 상태:', response.status);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      throw new Error('API 응답을 파싱할 수 없습니다.');
+    }
+
+    // 응답 구조 확인
+    if (!data || !data.data) {
+      console.error('예상치 못한 API 응답 구조');
+      return res.status(200).json({
+        success: true,
+        items: [],
+        message: 'API 응답 데이터가 비어있습니다.'
+      });
+    }
+
+    let items = data.data || [];
+
+    // 품목명 필터 적용
+    if (product) {
+      items = items.filter(item =>
+        item.gds_sclsf_nm && item.gds_sclsf_nm.includes(product)
+      );
+    }
+
+    // 산지 정보가 있는 항목만 필터링 (선택적)
+    const itemsWithOrigin = items.filter(item => item.plor_nm);
+
+    // 품목별로 집계
+    const productMap = new Map();
+
+    items.forEach(item => {
+      const productName = item.gds_sclsf_nm || '알 수 없음';
+      const origin = item.plor_nm || '미상';
+      const volume = parseFloat(item.damt_qty) || 0;
+
+      const key = `${productName}`;
+
+      if (!productMap.has(key)) {
+        productMap.set(key, {
+          product: productName,
+          totalVolume: 0,
+          origins: new Map(),
+          category: item.gds_lclsf_nm || '기타'
+        });
+      }
+
+      const productData = productMap.get(key);
+      productData.totalVolume += volume;
+
+      if (!productData.origins.has(origin)) {
+        productData.origins.set(origin, 0);
+      }
+      productData.origins.set(origin, productData.origins.get(origin) + volume);
+    });
+
+    // Map을 배열로 변환하고 정렬
+    const result = Array.from(productMap.values())
+      .map(item => ({
+        product: item.product,
+        category: item.category,
+        volume: Math.round(item.totalVolume),
+        origins: Array.from(item.origins.entries())
+          .map(([name, vol]) => ({ name, volume: Math.round(vol) }))
+          .sort((a, b) => b.volume - a.volume)
+          .slice(0, 3) // 상위 3개 산지
+      }))
+      .sort((a, b) => b.volume - a.volume);
+
+    res.status(200).json({
+      success: true,
+      items: result,
+      totalProducts: result.length,
+      hasOriginData: itemsWithOrigin.length > 0
+    });
+
+  } catch (error) {
+    console.error('실시간 경매정보 API 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '경매 정보를 가져오는 데 실패했습니다.'
+    });
+  }
+};

@@ -1269,6 +1269,25 @@ section h4 {
     white-space: nowrap;
 }
 
+/* 산지 정보 */
+.volume-origins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+    max-width: 280px;
+}
+
+.origin-item {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #fff3e0;
+    color: #e65100;
+    white-space: nowrap;
+}
+
 /* 추이 카드 */
 .volume-card.trend-card {
     display: grid;
