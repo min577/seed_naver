@@ -77,8 +77,8 @@ module.exports = async (req, res) => {
     console.log('응답 헤더:', JSON.stringify(responseHeader));
     console.log('응답 바디 구조:', JSON.stringify(responseBody).substring(0, 1000));
 
-    // 에러 코드 확인
-    if (responseHeader && responseHeader.resultCode !== '00') {
+    // 에러 코드 확인 (00 또는 0이면 정상)
+    if (responseHeader && responseHeader.resultCode !== '00' && responseHeader.resultCode !== '0') {
       return res.status(200).json({
         success: false,
         error: 'API 오류',
