@@ -23,26 +23,25 @@ module.exports = async (req, res) => {
     const pageNo = req.query.pageNo || '1';
     const numOfRows = req.query.numOfRows || '1000';
 
-    // 산지공판장 경락가격정보 API 테스트
-    console.log('산지공판장 경락가격정보 API 조회 시작');
+    // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
+    console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 오늘 날짜
+    // 오늘 날짜 (YYYY-MM-DD 형식)
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+    const dateStr = today.toISOString().split('T')[0];
 
-    // 여러 API 엔드포인트 시도
-    const urls = [
-      `http://apis.data.go.kr/B552845/katOriginInfo/originSaleInfo?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`,
-      `http://apis.data.go.kr/B552845/fmnPriceOriginInfo/getOriginPrice?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`,
-      `http://apis.data.go.kr/1390802/AgriFood/MrkOriginInfo/getOriginInspect?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`
-    ];
+    // API 엔드포인트: /trades
+    // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자), cond[whsl_mrkt_cd::EQ] (도매시장코드)
+    // 가락시장 코드: 110001
+    const marketCode = '110001'; // 가락시장
+    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}&cond[whsl_mrkt_cd::EQ]=${marketCode}`;
 
-    const url = urls[0]; // 첫 번째 URL 시도
     let data = null;
     let text = '';
 
-    console.log('산지공판장 경락가격정보 API 조회 (URL):', url);
+    console.log('경매원천정보 API 조회 (URL):', url);
     console.log('조회 날짜:', dateStr);
+    console.log('도매시장 코드:', marketCode);
 
     const response = await fetch(url);
     text = await response.text();
@@ -65,8 +64,8 @@ module.exports = async (req, res) => {
     // 응답 구조 확인
     console.log('파싱된 데이터 구조:', JSON.stringify(data).substring(0, 500));
 
-    // 공공데이터포털 API 응답 구조: response.body.items.item
-    if (!data || !data.response || !data.response.body) {
+    // 공공데이터포털 API 응답 구조: data.data (배열)
+    if (!data || !data.data) {
       console.error('예상치 못한 API 응답 구조');
       return res.status(200).json({
         success: false,
@@ -76,8 +75,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    const responseBody = data.response.body;
-    let items = responseBody.items?.item || [];
+    let items = data.data || [];
 
     // 배열이 아닌 경우 배열로 변환
     if (!Array.isArray(items)) {
@@ -85,25 +83,30 @@ module.exports = async (req, res) => {
     }
 
     console.log('경매 데이터 개수:', items.length);
-    console.log('totalCount:', responseBody.totalCount);
+    if (items.length > 0) {
+      console.log('첫 번째 항목 샘플:', JSON.stringify(items[0]));
+    }
 
-    // 품목명 필터 적용
+    // 품목명 필터 적용 (중분류명 기준)
     if (product) {
       items = items.filter(item =>
-        item.gds_sclsf_nm && item.gds_sclsf_nm.includes(product)
+        (item.mdcls_nm && item.mdcls_nm.includes(product)) ||
+        (item.smlcls_nm && item.smlcls_nm.includes(product))
       );
     }
 
-    // 산지 정보가 있는 항목만 필터링 (선택적)
+    // 산지 정보가 있는 항목만 필터링
     const itemsWithOrigin = items.filter(item => item.plor_nm);
+    console.log('산지 정보 있는 항목:', itemsWithOrigin.length);
 
     // 품목별로 집계
     const productMap = new Map();
 
     items.forEach(item => {
-      const productName = item.gds_sclsf_nm || '알 수 없음';
+      // 품목명: 소분류 > 중분류 > 대분류 순서로 사용
+      const productName = item.smlcls_nm || item.mdcls_nm || item.lrg_clsf_nm || '알 수 없음';
       const origin = item.plor_nm || '미상';
-      const volume = parseFloat(item.damt_qty) || 0;
+      const volume = parseFloat(item.qty) || 0;
 
       const key = `${productName}`;
 
@@ -112,7 +115,7 @@ module.exports = async (req, res) => {
           product: productName,
           totalVolume: 0,
           origins: new Map(),
-          category: item.gds_lclsf_nm || '기타'
+          category: item.lrg_clsf_nm || '기타'
         });
       }
 
@@ -142,7 +145,9 @@ module.exports = async (req, res) => {
       success: true,
       items: result,
       totalProducts: result.length,
-      hasOriginData: itemsWithOrigin.length > 0
+      hasOriginData: itemsWithOrigin.length > 0,
+      date: dateStr,
+      market: '가락시장'
     });
 
   } catch (error) {
