@@ -637,8 +637,8 @@ function renderEmptyRegionCards() {
 // 뷰 타입 변경 시 품목 필터 표시/숨김
 function handleVolumeViewChange() {
     const viewType = volumeViewSelect.value;
-    // 품목별 뷰일 때만 품목 필터 표시
-    if (viewType === 'product') {
+    // 품목별 뷰와 전국 도매시장별 뷰일 때만 품목 필터 표시
+    if (viewType === 'product' || viewType === 'auction') {
         volumeProductFilter.style.display = 'flex';
     } else {
         volumeProductFilter.style.display = 'none';
@@ -654,10 +654,20 @@ async function fetchVolumeInfo() {
     const productFilter = volumeProductSelect.value;
 
     try {
-        let url = `/api/volume-info?view=${viewType}`;
-        // 품목별 뷰에서 품목 필터가 있으면 추가
-        if (viewType === 'product' && productFilter) {
-            url += `&product=${encodeURIComponent(productFilter)}`;
+        let url = '';
+
+        // 전국 도매시장별 뷰는 auction-info API 사용
+        if (viewType === 'auction') {
+            url = '/api/auction-info';
+            if (productFilter) {
+                url += `?product=${encodeURIComponent(productFilter)}`;
+            }
+        } else {
+            // 기존 volume-info API 사용
+            url = `/api/volume-info?view=${viewType}`;
+            if (viewType === 'product' && productFilter) {
+                url += `&product=${encodeURIComponent(productFilter)}`;
+            }
         }
 
         const response = await fetch(url);
@@ -673,6 +683,9 @@ async function fetchVolumeInfo() {
             volumeChartSection.style.display = 'block';
             renderVolumeChart(data);
             renderVolumeTrendCards(data);
+        } else if (viewType === 'auction') {
+            volumeChartSection.style.display = 'none';
+            renderVolumeProductCards(data);
         } else {
             volumeChartSection.style.display = 'none';
             if (viewType === 'market') {
@@ -703,11 +716,19 @@ function formatVolume(volume) {
 function renderVolumeSummary(data) {
     volumeSummary.innerHTML = '';
     const summary = data.summary || {};
-    const viewType = data.viewType;
+    const viewType = data.viewType || volumeViewSelect.value;
     const isApiData = !data.isDummy;
 
     let items = [];
-    if (viewType === 'market') {
+
+    // 전국 도매시장별 뷰 (auction-info API)
+    if (viewType === 'auction' || data.totalMarkets !== undefined) {
+        items = [
+            { label: '전국 도매시장', value: data.totalMarkets || 0, unit: '개' },
+            { label: '품목 데이터', value: data.totalProducts || 0, unit: '건' },
+            { label: '조회 날짜', value: data.date || '-', unit: '' }
+        ];
+    } else if (viewType === 'market') {
         if (isApiData && summary.categories !== undefined) {
             // 실제 API 데이터: 카테고리별 요약
             items = [
@@ -918,6 +939,7 @@ function renderVolumeProductCards(data) {
 
     const hasOriginData = items[0] && items[0].origins;
     const hasCorporationData = items[0] && items[0].corporations;
+    const hasMarketData = items[0] && items[0].market;
 
     items.forEach((item, index) => {
         const isTop = index < 3;
@@ -925,8 +947,23 @@ function renderVolumeProductCards(data) {
         const card = document.createElement('div');
         card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
 
-        if (hasOriginData) {
-            // 공공데이터 API 데이터: 산지 정보 표시
+        if (hasMarketData && hasOriginData) {
+            // 전국 도매시장 데이터: 품목 + 도매시장 + 산지 정보 표시
+            card.innerHTML = `
+                <div class="volume-rank">${index + 1}</div>
+                <div class="volume-info">
+                    <div class="volume-name">${item.product}</div>
+                    <div class="volume-region">${item.market}</div>
+                </div>
+                <div class="volume-data">
+                    <div class="volume-amount">${formatVolume(item.volume)}</div>
+                </div>
+                <div class="volume-origins">
+                    ${renderOrigins(item.origins)}
+                </div>
+            `;
+        } else if (hasOriginData) {
+            // 공공데이터 API 데이터: 산지 정보만 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">

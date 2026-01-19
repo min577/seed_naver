@@ -32,17 +32,16 @@ module.exports = async (req, res) => {
     const dateStr = today.toISOString().split('T')[0];
 
     // API 엔드포인트: /trades
-    // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자), cond[whsl_mrkt_cd::EQ] (도매시장코드)
-    // 가락시장 코드: 110001
-    const marketCode = '110001'; // 가락시장
-    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}&cond[whsl_mrkt_cd::EQ]=${marketCode}`;
+    // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자)
+    // 도매시장코드를 생략하면 전국 모든 도매시장 데이터 조회
+    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}`;
 
     let data = null;
     let text = '';
 
     console.log('경매원천정보 API 조회 (URL):', url);
     console.log('조회 날짜:', dateStr);
-    console.log('도매시장 코드:', marketCode);
+    console.log('전국 도매시장 데이터 조회');
 
     const response = await fetch(url);
     text = await response.text();
@@ -98,43 +97,46 @@ module.exports = async (req, res) => {
       );
     }
 
-    // 산지 정보가 있는 항목만 필터링
-    const itemsWithOrigin = items.filter(item => item.plor_nm);
-    console.log('산지 정보 있는 항목:', itemsWithOrigin.length);
-
-    // 품목별로 집계
-    const productMap = new Map();
+    // 도매시장별, 품목별로 집계
+    const marketProductMap = new Map();
 
     items.forEach(item => {
       // 품목명: 소분류 > 중분류 > 대분류 순서로 사용
       const productName = item.smlcls_nm || item.mdcls_nm || item.lrg_clsf_nm || '알 수 없음';
+      const marketName = item.whsl_mrkt_nm || '미상';
+      const marketCode = item.whsl_mrkt_cd || '';
       const origin = item.plor_nm || '미상';
       const volume = parseFloat(item.qty) || 0;
 
-      const key = `${productName}`;
+      // 키: "도매시장코드-품목명"
+      const key = `${marketCode}-${productName}`;
 
-      if (!productMap.has(key)) {
-        productMap.set(key, {
+      if (!marketProductMap.has(key)) {
+        marketProductMap.set(key, {
           product: productName,
+          market: marketName,
+          marketCode: marketCode,
           totalVolume: 0,
           origins: new Map(),
           category: item.lrg_clsf_nm || '기타'
         });
       }
 
-      const productData = productMap.get(key);
-      productData.totalVolume += volume;
+      const data = marketProductMap.get(key);
+      data.totalVolume += volume;
 
-      if (!productData.origins.has(origin)) {
-        productData.origins.set(origin, 0);
+      if (!data.origins.has(origin)) {
+        data.origins.set(origin, 0);
       }
-      productData.origins.set(origin, productData.origins.get(origin) + volume);
+      data.origins.set(origin, data.origins.get(origin) + volume);
     });
 
     // Map을 배열로 변환하고 정렬
-    const result = Array.from(productMap.values())
+    const result = Array.from(marketProductMap.values())
       .map(item => ({
         product: item.product,
+        market: item.market,
+        marketCode: item.marketCode,
         category: item.category,
         volume: Math.round(item.totalVolume),
         origins: Array.from(item.origins.entries())
@@ -144,13 +146,17 @@ module.exports = async (req, res) => {
       }))
       .sort((a, b) => b.volume - a.volume);
 
+    // 도매시장 목록 추출
+    const markets = [...new Set(result.map(item => item.market))];
+
     res.status(200).json({
       success: true,
       items: result,
       totalProducts: result.length,
-      hasOriginData: itemsWithOrigin.length > 0,
-      date: dateStr,
-      market: '가락시장'
+      totalMarkets: markets.length,
+      markets: markets,
+      hasOriginData: items.filter(item => item.plor_nm).length > 0,
+      date: dateStr
     });
 
   } catch (error) {
