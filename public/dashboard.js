@@ -34,6 +34,8 @@ const regionCards = document.getElementById('regionCards');
 
 // 탭 4: 물동량
 const volumeViewSelect = document.getElementById('volumeViewSelect');
+const volumeProductFilter = document.getElementById('volumeProductFilter');
+const volumeProductSelect = document.getElementById('volumeProductSelect');
 const refreshVolumeBtn = document.getElementById('refreshVolumeBtn');
 const volumeSummary = document.getElementById('volumeSummary');
 const volumeCards = document.getElementById('volumeCards');
@@ -135,7 +137,8 @@ function initEventListeners() {
     refreshRegionBtn.addEventListener('click', fetchRegionPrice);
 
     // 탭 4: 물동량
-    volumeViewSelect.addEventListener('change', fetchVolumeInfo);
+    volumeViewSelect.addEventListener('change', handleVolumeViewChange);
+    volumeProductSelect.addEventListener('change', fetchVolumeInfo);
     refreshVolumeBtn.addEventListener('click', fetchVolumeInfo);
 
     // 탭 5: 검색
@@ -630,14 +633,34 @@ function renderEmptyRegionCards() {
 // ============================================
 // 탭 4: 물동량
 // ============================================
+
+// 뷰 타입 변경 시 품목 필터 표시/숨김
+function handleVolumeViewChange() {
+    const viewType = volumeViewSelect.value;
+    // 품목별 뷰일 때만 품목 필터 표시
+    if (viewType === 'product') {
+        volumeProductFilter.style.display = 'flex';
+    } else {
+        volumeProductFilter.style.display = 'none';
+    }
+    fetchVolumeInfo();
+}
+
 async function fetchVolumeInfo() {
     showLoading();
     hideError();
 
     const viewType = volumeViewSelect.value;
+    const productFilter = volumeProductSelect.value;
 
     try {
-        const response = await fetch(`/api/volume-info?view=${viewType}`);
+        let url = `/api/volume-info?view=${viewType}`;
+        // 품목별 뷰에서 품목 필터가 있으면 추가
+        if (viewType === 'product' && productFilter) {
+            url += `&product=${encodeURIComponent(productFilter)}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (!response.ok || !data.success) {

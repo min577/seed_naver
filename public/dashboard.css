@@ -1065,6 +1065,19 @@ section h4 {
     box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
 }
 
+/* 품목 필터 */
+.product-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.product-filter label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+}
+
 /* 물동량 요약 */
 .volume-summary {
     display: grid;

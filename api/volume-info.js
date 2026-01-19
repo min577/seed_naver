@@ -85,13 +85,15 @@ function parseApiDataByProduct(apiData) {
   const rows = apiData.GarakPayAfter?.row || [];
   if (!Array.isArray(rows) || rows.length === 0) return null;
 
+  console.log('품목별 파싱 시작 - 총 row 개수:', rows.length);
+
   const items = [];
 
   rows.forEach(row => {
     const sortCode = row.SORT_CD;
 
     // 합계(00)와 대분류 계(01, 02, 03)는 제외하고 개별 품목만 추출
-    if (sortCode === '00' || sortCode === '01' || sortCode === '02' || sortCode === '03' || sortCode === '21') {
+    if (sortCode === '00' || sortCode === '01' || sortCode === '02' || sortCode === '03') {
       return;
     }
 
@@ -104,8 +106,10 @@ function parseApiDataByProduct(apiData) {
     else if (sortCode.startsWith('2')) category = '과일과채류';
     else if (sortCode.startsWith('3')) category = '일반채소류';
 
+    const productName = row.PUM_NM || row.PUM_CD || '알 수 없음';
+
     items.push({
-      product: row.PUM_NM || row.PUM_CD,
+      product: productName,
       category: category,
       volume: Math.round(volume * 1000), // 톤 -> kg 변환
       unit: 'kg',
@@ -119,6 +123,11 @@ function parseApiDataByProduct(apiData) {
       }
     });
   });
+
+  console.log('품목별 파싱 완료 - 품목 개수:', items.length);
+  if (items.length > 0) {
+    console.log('첫 번째 품목 샘플:', items[0]);
+  }
 
   return items.sort((a, b) => b.volume - a.volume);
 }
@@ -312,6 +321,7 @@ module.exports = async (req, res) => {
   try {
     const viewType = req.query.view || 'market'; // market, product, trend
     const date = req.query.date;
+    const productFilter = req.query.product || ''; // 품목 필터 (예: 토마토)
 
     // 서울 열린데이터광장 API 호출 시도
     const apiData = await fetchGarakVolumeData(date);
@@ -381,11 +391,20 @@ module.exports = async (req, res) => {
     if (viewType === 'product') {
       // 품목별 물동량
       items = parseApiDataByProduct(apiData);
+
+      // 품목 필터 적용
+      if (items && productFilter) {
+        items = items.filter(item =>
+          item.product && item.product.includes(productFilter)
+        );
+      }
+
       if (items && items.length > 0) {
         summary = {
           totalProducts: items.length,
           totalVolume: items.reduce((sum, item) => sum + item.volume, 0),
-          topProduct: items[0]?.product || '-'
+          topProduct: items[0]?.product || '-',
+          filterApplied: productFilter || null
         };
       }
     } else if (viewType === 'trend') {

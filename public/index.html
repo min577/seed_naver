@@ -212,9 +212,27 @@
                     <div class="view-selector">
                         <label for="volumeViewSelect">보기:</label>
                         <select id="volumeViewSelect" class="view-dropdown">
-                            <option value="market">도매시장별</option>
+                            <option value="market">카테고리별</option>
                             <option value="product">품목별</option>
                             <option value="trend">일별 추이</option>
+                        </select>
+                    </div>
+                    <div class="product-filter" id="volumeProductFilter" style="display: none;">
+                        <label for="volumeProductSelect">품목:</label>
+                        <select id="volumeProductSelect" class="product-dropdown">
+                            <option value="">전체</option>
+                            <option value="토마토">토마토</option>
+                            <option value="사과">사과</option>
+                            <option value="배">배</option>
+                            <option value="포도">포도</option>
+                            <option value="딸기">딸기</option>
+                            <option value="수박">수박</option>
+                            <option value="오이">오이</option>
+                            <option value="고추">고추</option>
+                            <option value="배추">배추</option>
+                            <option value="양파">양파</option>
+                            <option value="감자">감자</option>
+                            <option value="마늘">마늘</option>
                         </select>
                     </div>
                     <button id="refreshVolumeBtn" class="refresh-btn"><i data-lucide="refresh-cw"></i> 조회</button>
