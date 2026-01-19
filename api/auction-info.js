@@ -26,66 +26,81 @@ module.exports = async (req, res) => {
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 최근 영업일 데이터 조회 - 고정 날짜 (2025년 데이터)
-    // TODO: 2026년 데이터 제공 시작되면 동적 날짜로 변경
-    const dateStr = '2025-01-10'; // 확실한 영업일 데이터
-
-    // API 엔드포인트: /trades
-    // 필수 파라미터: cond[trd_clcln_ymd::EQ] (거래정산일자)
-    // 도매시장코드를 생략하면 전국 모든 도매시장 데이터 조회
-    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}`;
+    // 여러 날짜를 시도하여 데이터 찾기
+    const testDates = [
+      '2024-12-31',
+      '2024-12-30',
+      '2024-12-27',
+      '2024-12-26',
+      '2024-12-25',
+      '2024-12-24',
+      '2024-12-23',
+      '2024-12-20',
+      '2025-01-02',
+      '2025-01-03',
+      '2025-01-06',
+      '2025-01-07',
+      '2025-01-08',
+      '2025-01-09',
+      '2025-01-10'
+    ];
 
     let data = null;
-    let text = '';
+    let dateStr = '';
+    let items = [];
 
-    console.log('경매원천정보 API 조회 (URL):', url);
-    console.log('조회 날짜:', dateStr);
-    console.log('전국 도매시장 데이터 조회');
+    // 각 날짜를 시도하여 데이터가 있는지 확인
+    for (const testDate of testDates) {
+      const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${testDate}`;
 
-    const response = await fetch(url);
-    text = await response.text();
-    console.log('경매정보 API 응답 상태:', response.status);
+      console.log(`테스트 날짜: ${testDate}`);
 
-    try {
-      data = JSON.parse(text);
-    } catch (parseError) {
-      console.error('JSON 파싱 오류:', parseError);
-      console.error('원본 응답 (첫 1000자):', text.substring(0, 1000));
+      const response = await fetch(url);
+      const text = await response.text();
+      console.log('경매정보 API 응답 상태:', response.status);
+
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError);
+        continue; // 다음 날짜 시도
+      }
+
+      // 응답 구조 확인
+      if (!data || !data.response || !data.response.body) {
+        console.log(`${testDate}: 응답 구조 오류`);
+        continue;
+      }
+
+      const responseBody = data.response.body;
+      let testItems = responseBody.items?.item || [];
+
+      // 배열이 아닌 경우 배열로 변환
+      if (!Array.isArray(testItems)) {
+        testItems = testItems ? [testItems] : [];
+      }
+
+      console.log(`${testDate}: 데이터 개수 = ${testItems.length}, totalCount = ${responseBody.totalCount}`);
+
+      // 데이터가 있으면 사용
+      if (testItems.length > 0) {
+        items = testItems;
+        dateStr = testDate;
+        console.log(`✓ ${testDate} 데이터 발견! (${items.length}건)`);
+        console.log('첫 번째 항목 샘플:', JSON.stringify(items[0]));
+        break; // 데이터를 찾았으므로 종료
+      }
+    }
+
+    // 모든 날짜를 시도했지만 데이터가 없는 경우
+    if (items.length === 0) {
+      console.log('모든 테스트 날짜에서 데이터를 찾지 못했습니다.');
       return res.status(200).json({
         success: false,
-        error: 'API 응답 파싱 실패',
-        rawResponse: text.substring(0, 1000),
-        parseError: parseError.message,
-        apiUrl: url
+        error: '데이터 없음',
+        message: '여러 날짜를 시도했지만 데이터를 찾지 못했습니다. API가 현재 데이터를 제공하지 않을 수 있습니다.',
+        testedDates: testDates
       });
-    }
-
-    // 응답 구조 확인
-    console.log('파싱된 데이터 구조:', JSON.stringify(data).substring(0, 500));
-
-    // 공공데이터포털 API 응답 구조: response.body.items.item
-    if (!data || !data.response || !data.response.body) {
-      console.error('예상치 못한 API 응답 구조');
-      return res.status(200).json({
-        success: false,
-        error: 'API 응답 데이터 구조 오류',
-        rawData: data,
-        message: 'API 응답 데이터가 비어있거나 구조가 다릅니다.'
-      });
-    }
-
-    const responseBody = data.response.body;
-    let items = responseBody.items?.item || [];
-
-    // 배열이 아닌 경우 배열로 변환
-    if (!Array.isArray(items)) {
-      items = items ? [items] : [];
-    }
-
-    console.log('경매 데이터 개수:', items.length);
-    console.log('totalCount:', responseBody.totalCount);
-    if (items.length > 0) {
-      console.log('첫 번째 항목 샘플:', JSON.stringify(items[0]));
     }
 
     // 품목명 필터 적용 (중분류명 기준)
@@ -162,7 +177,7 @@ module.exports = async (req, res) => {
       markets: markets,
       hasOriginData: items.filter(item => item.plor_nm).length > 0,
       date: dateStr,
-      message: result.length === 0 ? `${dateStr} 데이터가 없습니다. API 키 또는 날짜를 확인하세요.` : undefined
+      message: result.length === 0 ? `${dateStr} 데이터가 없습니다.` : undefined
     });
 
   } catch (error) {
