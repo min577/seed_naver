@@ -637,8 +637,8 @@ function renderEmptyRegionCards() {
 // 뷰 타입 변경 시 품목 필터 표시/숨김
 function handleVolumeViewChange() {
     const viewType = volumeViewSelect.value;
-    // 품목별 뷰와 전국 도매시장별 뷰일 때만 품목 필터 표시
-    if (viewType === 'product' || viewType === 'auction') {
+    // 품목별 뷰일 때만 품목 필터 표시
+    if (viewType === 'product') {
         volumeProductFilter.style.display = 'flex';
     } else {
         volumeProductFilter.style.display = 'none';
@@ -654,20 +654,10 @@ async function fetchVolumeInfo() {
     const productFilter = volumeProductSelect.value;
 
     try {
-        let url = '';
-
-        // 전국 도매시장별 뷰는 auction-info API 사용
-        if (viewType === 'auction') {
-            url = '/api/auction-info';
-            if (productFilter) {
-                url += `?product=${encodeURIComponent(productFilter)}`;
-            }
-        } else {
-            // 기존 volume-info API 사용
-            url = `/api/volume-info?view=${viewType}`;
-            if (viewType === 'product' && productFilter) {
-                url += `&product=${encodeURIComponent(productFilter)}`;
-            }
+        // volume-info API 사용
+        let url = `/api/volume-info?view=${viewType}`;
+        if (viewType === 'product' && productFilter) {
+            url += `&product=${encodeURIComponent(productFilter)}`;
         }
 
         const response = await fetch(url);
@@ -683,9 +673,6 @@ async function fetchVolumeInfo() {
             volumeChartSection.style.display = 'block';
             renderVolumeChart(data);
             renderVolumeTrendCards(data);
-        } else if (viewType === 'auction') {
-            volumeChartSection.style.display = 'none';
-            renderVolumeProductCards(data);
         } else {
             volumeChartSection.style.display = 'none';
             if (viewType === 'market') {
