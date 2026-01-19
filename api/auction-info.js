@@ -30,7 +30,14 @@ module.exports = async (req, res) => {
     const today = new Date();
     const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
 
-    const url = `http://apis.data.go.kr/B552845/fmnPriceOriginInfo/getOriginPrice?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`;
+    // 여러 API 엔드포인트 시도
+    const urls = [
+      `http://apis.data.go.kr/B552845/katOriginInfo/originSaleInfo?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`,
+      `http://apis.data.go.kr/B552845/fmnPriceOriginInfo/getOriginPrice?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&saleDate=${dateStr}`,
+      `http://apis.data.go.kr/1390802/AgriFood/MrkOriginInfo/getOriginInspect?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}`
+    ];
+
+    const url = urls[0]; // 첫 번째 URL 시도
     let data = null;
     let text = '';
 
