@@ -21,124 +21,113 @@ module.exports = async (req, res) => {
 
     const product = req.query.product || ''; // 품목명 필터
     const pageNo = req.query.pageNo || '1';
-    const numOfRows = req.query.numOfRows || '100';
+    const numOfRows = req.query.numOfRows || '1000';
 
     // 전국 공영도매시장 경매원천정보 API (산지 정보 포함)
     console.log('전국 공영도매시장 경매원천정보 API 조회 시작');
 
-    // 단일 날짜로 테스트 (2024년 12월 31일)
+    // 조회 날짜
     const dateStr = '2024-12-31';
 
-    // API 엔드포인트: /trades
-    const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}`;
+    // 전국 주요 도매시장 코드 (32개 공영도매시장 중 주요 시장)
+    const marketCodes = [
+      { code: '110001', name: '서울가락' },
+      { code: '210003', name: '부산엄궁' },
+      { code: '220004', name: '부산반여' },
+      { code: '230002', name: '대구북부' },
+      { code: '240001', name: '인천삼산' },
+      { code: '250001', name: '광주각화' },
+      { code: '260001', name: '대전오정' },
+      { code: '270001', name: '울산' },
+      { code: '310001', name: '수원' },
+      { code: '320001', name: '안양' },
+      { code: '330001', name: '안산' },
+      { code: '410003', name: '강릉' },
+      { code: '420005', name: '청주' },
+      { code: '430002', name: '천안' },
+      { code: '440001', name: '전주' },
+      { code: '450001', name: '포항' }
+    ];
 
-    console.log('API 호출 URL:', url.replace(apiKey, 'HIDDEN'));
-    console.log('조회 날짜:', dateStr);
+    let allItems = [];
+    let successCount = 0;
+    let errorMessages = [];
 
-    const response = await fetch(url);
-    const text = await response.text();
+    // 각 도매시장별로 데이터 조회
+    for (const market of marketCodes) {
+      try {
+        const url = `https://apis.data.go.kr/B552845/katOrigin/trades?serviceKey=${encodeURIComponent(apiKey)}&returnType=json&pageNo=${pageNo}&numOfRows=${numOfRows}&cond[trd_clcln_ymd::EQ]=${dateStr}&cond[whsl_mrkt_cd::EQ]=${market.code}`;
 
-    console.log('응답 상태:', response.status);
-    console.log('응답 본문 (첫 2000자):', text.substring(0, 2000));
+        console.log(`${market.name}(${market.code}) 조회 중...`);
 
-    let data = null;
-    try {
-      data = JSON.parse(text);
-    } catch (parseError) {
-      console.error('JSON 파싱 오류:', parseError);
-      return res.status(200).json({
-        success: false,
-        error: 'API 응답 파싱 실패',
-        rawResponse: text.substring(0, 2000),
-        parseError: parseError.message
-      });
-    }
+        const response = await fetch(url);
+        const text = await response.text();
 
-    console.log('파싱된 데이터 전체 구조:', JSON.stringify(data, null, 2).substring(0, 3000));
-
-    // 응답 구조 확인
-    if (!data || !data.response) {
-      return res.status(200).json({
-        success: false,
-        error: '응답 구조 오류',
-        message: 'response 객체가 없습니다',
-        rawData: data,
-        debugInfo: {
-          hasData: !!data,
-          hasResponse: !!(data?.response),
-          dataKeys: data ? Object.keys(data) : []
+        let data = null;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error(`${market.name} JSON 파싱 오류:`, parseError);
+          errorMessages.push(`${market.name}: 파싱 오류`);
+          continue;
         }
-      });
-    }
 
-    const responseHeader = data.response.header;
-    const responseBody = data.response.body;
-
-    console.log('응답 헤더:', JSON.stringify(responseHeader));
-    console.log('응답 바디 구조:', JSON.stringify(responseBody).substring(0, 1000));
-
-    // 에러 코드 확인 (00 또는 0이면 정상)
-    if (responseHeader && responseHeader.resultCode !== '00' && responseHeader.resultCode !== '0') {
-      return res.status(200).json({
-        success: false,
-        error: 'API 오류',
-        resultCode: responseHeader.resultCode,
-        resultMessage: responseHeader.resultMsg,
-        debugInfo: {
-          apiUrl: url.replace(apiKey, 'HIDDEN'),
-          date: dateStr
+        // 응답 구조 확인
+        if (!data || !data.response || !data.response.body) {
+          console.log(`${market.name}: 응답 구조 오류`);
+          errorMessages.push(`${market.name}: 응답 구조 오류`);
+          continue;
         }
-      });
-    }
 
-    if (!responseBody) {
-      return res.status(200).json({
-        success: false,
-        error: 'body 없음',
-        message: 'response.body가 없습니다',
-        responseHeader: responseHeader,
-        debugInfo: {
-          hasBody: !!responseBody,
-          responseKeys: data.response ? Object.keys(data.response) : []
+        const responseHeader = data.response.header;
+        const responseBody = data.response.body;
+
+        // 에러 코드 확인
+        if (responseHeader && responseHeader.resultCode !== '00' && responseHeader.resultCode !== '0') {
+          console.log(`${market.name}: API 오류 - ${responseHeader.resultMsg}`);
+          errorMessages.push(`${market.name}: ${responseHeader.resultMsg}`);
+          continue;
         }
-      });
+
+        let items = responseBody.items?.item || [];
+
+        // 배열이 아닌 경우 배열로 변환
+        if (!Array.isArray(items)) {
+          items = items ? [items] : [];
+        }
+
+        console.log(`${market.name}: ${items.length}건`);
+
+        if (items.length > 0) {
+          allItems = allItems.concat(items);
+          successCount++;
+        }
+      } catch (marketError) {
+        console.error(`${market.name} 조회 오류:`, marketError);
+        errorMessages.push(`${market.name}: ${marketError.message}`);
+      }
     }
 
-    let items = responseBody.items?.item || [];
-
-    // 배열이 아닌 경우 배열로 변환
-    if (!Array.isArray(items)) {
-      items = items ? [items] : [];
-    }
-
-    console.log('데이터 개수:', items.length);
-    console.log('totalCount:', responseBody.totalCount);
-    if (items.length > 0) {
-      console.log('첫 번째 항목:', JSON.stringify(items[0]));
-    }
+    console.log(`총 ${successCount}개 시장에서 ${allItems.length}건 수집`);
 
     // 데이터가 없는 경우
-    if (items.length === 0) {
+    if (allItems.length === 0) {
       return res.status(200).json({
         success: false,
         error: '데이터 없음',
-        message: `${dateStr} 데이터가 없습니다`,
+        message: `${dateStr} 전국 도매시장 데이터가 없습니다`,
         debugInfo: {
-          resultCode: responseHeader?.resultCode,
-          resultMessage: responseHeader?.resultMsg,
-          totalCount: responseBody.totalCount,
-          numOfRows: responseBody.numOfRows,
-          pageNo: responseBody.pageNo,
-          hasItems: !!responseBody.items,
-          itemsType: typeof responseBody.items,
-          apiUrl: url.replace(apiKey, 'HIDDEN')
+          date: dateStr,
+          marketsChecked: marketCodes.length,
+          successCount: successCount,
+          errors: errorMessages
         }
       });
     }
 
-    // 품목명 필터 적용 (중분류명 기준)
+    // 품목명 필터 적용
     if (product) {
-      items = items.filter(item =>
+      allItems = allItems.filter(item =>
         (item.mdcls_nm && item.mdcls_nm.includes(product)) ||
         (item.smlcls_nm && item.smlcls_nm.includes(product))
       );
@@ -147,15 +136,13 @@ module.exports = async (req, res) => {
     // 도매시장별, 품목별로 집계
     const marketProductMap = new Map();
 
-    items.forEach(item => {
-      // 품목명: 소분류 > 중분류 > 대분류 순서로 사용
+    allItems.forEach(item => {
       const productName = item.smlcls_nm || item.mdcls_nm || item.lrg_clsf_nm || '알 수 없음';
       const marketName = item.whsl_mrkt_nm || '미상';
       const marketCode = item.whsl_mrkt_cd || '';
       const origin = item.plor_nm || '미상';
       const volume = parseFloat(item.qty) || 0;
 
-      // 키: "도매시장코드-품목명"
       const key = `${marketCode}-${productName}`;
 
       if (!marketProductMap.has(key)) {
@@ -208,8 +195,10 @@ module.exports = async (req, res) => {
       totalProducts: result.length,
       totalMarkets: markets.length,
       markets: markets,
-      hasOriginData: items.filter(item => item.plor_nm).length > 0,
-      date: dateStr
+      hasOriginData: allItems.filter(item => item.plor_nm).length > 0,
+      date: dateStr,
+      marketsChecked: marketCodes.length,
+      marketsWithData: successCount
     });
 
   } catch (error) {
