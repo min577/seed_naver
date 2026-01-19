@@ -926,7 +926,7 @@ function renderVolumeProductCards(data) {
         card.className = 'volume-card product-card' + (isTop ? ' top-product' : '');
 
         if (hasOriginData) {
-            // 공공데이터 API 데이터: 산지 → 가락시장 유통 흐름 표시
+            // 공공데이터 API 데이터: 산지 정보 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">
@@ -936,17 +936,12 @@ function renderVolumeProductCards(data) {
                 <div class="volume-data">
                     <div class="volume-amount">${formatVolume(item.volume)}</div>
                 </div>
-                <div class="volume-flow">
-                    <div class="flow-label">유통 흐름</div>
-                    <div class="flow-path">
-                        ${renderOriginFlow(item.origins)}
-                        <span class="flow-arrow">→</span>
-                        <span class="flow-destination">가락시장</span>
-                    </div>
+                <div class="volume-origins">
+                    ${renderOrigins(item.origins)}
                 </div>
             `;
         } else if (hasCorporationData) {
-            // 서울시 API 데이터: 가락시장 → 도매법인 유통 흐름 표시
+            // 서울시 API 데이터: 도매법인 정보 표시
             card.innerHTML = `
                 <div class="volume-rank">${index + 1}</div>
                 <div class="volume-info">
@@ -956,13 +951,8 @@ function renderVolumeProductCards(data) {
                 <div class="volume-data">
                     <div class="volume-amount">${formatVolume(item.volume)}</div>
                 </div>
-                <div class="volume-flow">
-                    <div class="flow-label">유통 흐름</div>
-                    <div class="flow-path">
-                        <span class="flow-destination">가락시장</span>
-                        <span class="flow-arrow">→</span>
-                        ${renderCorporationFlow(item.corporations)}
-                    </div>
+                <div class="volume-corporations">
+                    ${renderCorporations(item.corporations)}
                 </div>
             `;
         } else {
