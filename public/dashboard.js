@@ -489,7 +489,7 @@ function renderPriceChart(data) {
                 `).join('')}
 
                 <!-- 출처 -->
-                <text x="${chartWidth - marginRight}" y="${chartHeight - 5}" class="chart-source">출처: KAMIS (가락시장 도매가격)</text>
+                <text x="${chartWidth - marginRight}" y="${chartHeight - 5}" class="chart-source">출처: 가락시장 도매가격</text>
             </svg>
         </div>
     `;
@@ -1199,7 +1199,7 @@ function renderModalChart(data, priceType, label) {
     // 선 색상 및 출처 결정
     const lineColor = priceType === 'retail' ? '#10b981' : '#2563eb';
     const areaColor = priceType === 'retail' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(37, 99, 235, 0.15)';
-    const sourceText = priceType === 'retail' ? '출처: KAMIS (대형마트)' : '출처: KAMIS (가락시장)';
+    const sourceText = priceType === 'retail' ? '출처: 대형마트' : '출처: 가락시장';
 
     const html = `
         <div class="line-chart-container modal-line-chart">
